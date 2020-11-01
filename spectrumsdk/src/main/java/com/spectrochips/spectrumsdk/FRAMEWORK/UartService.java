@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.spectrochips.spectrumsdk.FRAMEWORK;
+package com.example.vedas.blesample.FRAMEWORK;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -29,16 +29,18 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
+import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-//import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.UUID;
-
-
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 
 public class UartService extends Service {
@@ -66,7 +68,7 @@ public class UartService extends Service {
             "com.nordicsemi.nrfUART.EXTRA_DATA";
     public final static String DEVICE_DOES_NOT_SUPPORT_UART =
             "com.nordicsemi.nrfUART.DEVICE_DOES_NOT_SUPPORT_UART";
-
+    public final static String  ACTION_DATA_AVAILABLE_DATA="com.nordicsemi.nrfUART.ACTION_DATA_AVAILABLE";
     public static final UUID TX_POWER_UUID = UUID.fromString("00001804-0000-1000-8000-00805f9b34fb");
     public static final UUID TX_POWER_LEVEL_UUID = UUID.fromString("00002a07-0000-1000-8000-00805f9b34fb");
     public static final UUID CCCD = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
@@ -83,6 +85,8 @@ public class UartService extends Service {
 
     BluetoothGattCharacteristic wCharacterstic;
     private volatile boolean mBusy = false; // Write/read pending response
+
+
 
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
@@ -111,11 +115,11 @@ public class UartService extends Service {
             Log.e("onservice","call"+status);
             List<BluetoothGattService> ser=mBluetoothGatt.getServices();
             for(int i=0;i<ser.size();i++){
-                BluetoothGattService service  = ser.get(i);
+                BluetoothGattService  service  = ser.get(i);
                 if(service.getUuid().equals(RX_SERVICE_UUID)){
                     List<BluetoothGattCharacteristic> charectersticArray =service.getCharacteristics();
                     for(int j=0;j<charectersticArray.size();j++){
-                      BluetoothGattCharacteristic characteristic = charectersticArray.get(j);
+                      BluetoothGattCharacteristic    characteristic = charectersticArray.get(j);
                         if(characteristic.getUuid().equals(TX_CHAR_UUID)){
                             Log.e("Called Matched","Charecterstic");
                             wCharacterstic=characteristic;
@@ -136,6 +140,14 @@ public class UartService extends Service {
             } else {
                 Log.w(TAG, "onServicesDiscoveredreceived: " + status);
             }
+             SCConnectionHelper.getInstance().isConnected = true;
+            if ( SCConnectionHelper.getInstance().scanDeviceInterface == null) {
+                //Fire proper event. bitmapList or error message will be sent to
+                //class which set scanDeviceInterface.
+            } else {
+                Log.e("dathuuuuu","call"+mBluetoothGatt.getServices());
+                SCConnectionHelper.getInstance().scanDeviceInterface.onSuccessForConnection("Device Connected");
+            }
            // startActivity(new Intent(getApplicationContext(), SCFilesViewController.class));
         }
         @Override
@@ -143,7 +155,7 @@ public class UartService extends Service {
                                          BluetoothGattCharacteristic characteristic,
                                          int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+              //  broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
                 Log.w(TAG, "onServicesDiscovered received: " + status);
             }
         }
@@ -153,7 +165,10 @@ public class UartService extends Service {
         	byte[] data = characteristic.getValue();
         	Log.e(TAG, "Received TX: "  + notiCount + " - " + characteristic.getStringValue(0) );
         	notiCount++;
-            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+            if(SCTestAnalysis.getInstance().testDataInterface !=null){
+                SCTestAnalysis.getInstance(). testDataInterface.gettingData(characteristic.getValue());
+            }
+        //  broadcastUpdate(ACTION_DATA_AVAILABLE_DATA, characteristic);
         }
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt,
@@ -169,8 +184,8 @@ public class UartService extends Service {
         public void onDescriptorWrite(BluetoothGatt gatt,
                                       BluetoothGattDescriptor descriptor, int status) {
             Log.i(TAG, "onDescriptorWrite: " + descriptor.getUuid().toString());
-            mBusy = false;
-        }
+        mBusy = false;
+    }
 };
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
@@ -184,10 +199,22 @@ public class UartService extends Service {
         // carried out as per profile specifications:
         // http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
         if (TX_CHAR_UUID.equals(characteristic.getUuid())) {
-            // Log.d(TAG, String.format("Received TX: %d",characteristic.getValue() ));
-        	//Log.d(TAG, "Received TX: "  + notiCount + " - " + characteristic.getStringValue(0) );
-        	notiCount++;
-            intent.putExtra(EXTRA_DATA, characteristic.getValue());
+            try {
+              //  String s= new String(characteristic.getValue(), "UTF-8");
+               // Log.e("utfstring","call"+s);
+                final byte[] txValue = characteristic.getValue();
+                //Log.e("ReceivedBytes", "call" + txValue.length);
+                String text = new String(characteristic.getValue(),"UTF-8");
+                Log.e("ReceivedBytes", "call" + text);
+               // SCTestAnalysis.getInstance(). socketDidReceiveMessage(text, SCTestAnalysis.getInstance().requestCommand);
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            notiCount++;
+            /*if(SCTestAnalysis.getInstance().testDataInterface !=null){
+                SCTestAnalysis.getInstance(). testDataInterface.gettingData(characteristic.getValue());
+            }*/
+           // intent.putExtra(EXTRA_DATA, characteristic.getValue());
         } else {
 
         }
