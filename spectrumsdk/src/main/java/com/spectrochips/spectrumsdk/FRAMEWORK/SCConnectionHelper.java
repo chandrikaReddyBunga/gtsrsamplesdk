@@ -52,7 +52,7 @@ public class SCConnectionHelper {
     private ArrayList<BluetoothDevice> deviceList = new ArrayList<BluetoothDevice>();
     private static final long SCAN_PERIOD = 10000; //10 seconds
     private Handler mHandler = new Handler();
-    private ScanDeviceInterface scanDeviceInterface;
+    public ScanDeviceInterface scanDeviceInterface;
     private String COMPANY_BLE_IDENTIFIER ="0D00DBFB";
   //  public UUID serviceUUID = UUID.fromString("FFE0");
     /// UUID of the characteristic to look for.
