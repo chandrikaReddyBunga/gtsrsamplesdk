@@ -3,22 +3,31 @@ package com.spectrochips.spectrumsdk.FRAMEWORK;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.ParcelUuid;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.spectrochips.spectrumsdk.MODELS.ImageSensorStruct;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.ANALOG_GAIN_TAG;
 import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.AVG_FRAME_TAG;
@@ -36,9 +45,6 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
 import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TURN_ON;
 import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.WIFI_INFO_CHANGE_TAG;
 
-/**
- * Created by wave on 10/6/2018.
- */
 public class SCConnectionHelper {
     private static SCConnectionHelper myObj;
     public boolean isConnected = false;
@@ -54,9 +60,9 @@ public class SCConnectionHelper {
     private Handler mHandler = new Handler();
     public ScanDeviceInterface scanDeviceInterface;
     private String COMPANY_BLE_IDENTIFIER ="0D00DBFB";
-  //  public UUID serviceUUID = UUID.fromString("FFE0");
+    //  public UUID serviceUUID = UUID.fromString("FFE0");
     /// UUID of the characteristic to look for.
-   // public UUID characteristicUUID = UUID.fromString("FFE1");
+    // public UUID characteristicUUID = UUID.fromString("FFE1");
 
 
     public static SCConnectionHelper getInstance() {
@@ -73,40 +79,48 @@ public class SCConnectionHelper {
         deviceList.clear();
         startScan(true);
     }
-   // BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-   public void startScan(boolean enable) {
-       if (enable) {
-           this.mHandler.postDelayed(new Runnable() {
-               public void run() {
-                   mScanning = false;
-                  // mBluetoothAdapter.stopLeScan(mLeScanCallback);
-               }
-           }, 10000L);
-           this.mScanning = true;
-           this.mBluetoothAdapter.startLeScan(this.mLeScanCallback);
-       } else {
-           this.mScanning = false;
-           this.mBluetoothAdapter.stopLeScan(this.mLeScanCallback);
-       }
-    }
-/*if (scanner != null) {
-        scanner.startScan(filters, scanSettings, scanCallback);
-        Log.d(TAG, "scan started");
-
-    }  else {
-        Log.e(TAG, "could not get scanner object");
-    }*/
-   /* public void startScan(final boolean enable) {
+    /* public void startScan(boolean enable) {
+         if (enable) {
+             this.mHandler.postDelayed(new Runnable() {
+                 public void run() {
+                     mScanning = false;
+                    // mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                 }
+             }, 10000L);
+             this.mScanning = true;
+             this.mBluetoothAdapter.startLeScan(this.mLeScanCallback);
+         } else {
+             this.mScanning = false;
+             this.mBluetoothAdapter.stopLeScan(this.mLeScanCallback);
+         }
+      }*/
+    private final ScanCallback scanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            BluetoothDevice device = result.getDevice();
+            // deviceList.add(device);
+            Log.e("scanCallback", "call" + device.getName() + device.getAddress() );
+            addDevice(device, 0);
+        }
+        @Override
+        public void onBatchScanResults(List<ScanResult> results) {
+            // Ignore for now
+        }
+        @Override
+        public void onScanFailed(int errorCode) {
+            Log.e("onScanFailed", "call" +errorCode);
+            // Ignore for now
+        }
+    };
+    public void startScan(final boolean enable) {
         Log.e("scanmethod","call"+enable);
-       final UUID uuid = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb");
+        final UUID uuid = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb");
         if (enable) {
             mHandler.postDelayed(new Runnable() {
                 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
                 @Override
                 public void run() {
                     deviceList.clear();
-                   // String str = "FFE0";
-                 //   UUID uuid = UUID.nameUUIDFromBytes(str.getBytes());
                     Log.e("uuid","call"+uuid);
                     UUID[] serviceUUIDs = new UUID[]{uuid};
                     List<ScanFilter> filters = null;
@@ -124,58 +138,42 @@ public class SCConnectionHelper {
                         }
                     }
                     ScanSettings scanSettings=null;
-                   // if(android.os.Build.VERSION.SDK_INT >=Build.VERSION_CODES.M){
-                         scanSettings = new ScanSettings.Builder()
-                                .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
-                                .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
-                                .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
-                                .setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT)
-                                .setReportDelay(0L)
-                                .build();
-                   // }
-                  // scanner.startScan(null,scanSettings,scanCallback);
-                    startScan(true);
-                    didDevicesNotFound();
+                    // if(android.os.Build.VERSION.SDK_INT >=Build.VERSION_CODES.M){
+                    scanSettings = new ScanSettings.Builder()
+                            .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
+                            .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
+                            .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
+                            .setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT)
+                            .setReportDelay(0L)
+                            .build();
+                    // }
+                    if (scanner != null) {
+                        scanner.startScan(filters, scanSettings, scanCallback);
+                        Log.d(TAG, "scan started");
+
+                    }  else {
+                        Log.e(TAG, "could not get scanner object");
+                        startScan(true);
+                    }
+                    // startScan(true);
+                    // didDevicesNotFound();
                 }
             }, SCAN_PERIOD);
             mScanning = true;
-          mBluetoothAdapter.startLeScan(mLeScanCallback);
+            //  mBluetoothAdapter.startLeScan(mLeScanCallback);
         } else {
             mScanning = false;
             stopScan();
         }
-    }*/
-   /* private final ScanCallback scanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            BluetoothDevice device = result.getDevice();
-           // deviceList.add(device);
-            Log.e("scanCallback", "call" + device.getName() + device.getAddress() );
-            addDevice(device, 0);
-           *//* if (bytesToHexString(result.getScanRecord().getBytes()).contains(COMPANY_BLE_IDENTIFIER)) {
-                if (device.getAddress() != null) {
-                    addDevice(device, 0);
-                }
-            } *//*
-            // ...do whatever you want with this found device
-        }
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            // Ignore for now
-        }
-        @Override
-        public void onScanFailed(int errorCode) {
-            Log.e("onScanFailed", "call" +errorCode);
-            // Ignore for now
-        }
-    };*/
+    }
+
     private void didDevicesNotFound() {
         scanDeviceInterface.onSuccessForScanning(deviceList,false);
     }
 
     public void stopScan() {
-        //scanner.stopScan(scanCallback);
-        mBluetoothAdapter.stopLeScan(mLeScanCallback);
+        scanner.stopScan(scanCallback);
+        //  mBluetoothAdapter.stopLeScan(mLeScanCallback);
         mHandler.removeCallbacksAndMessages(null);
     }
     private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
@@ -201,6 +199,7 @@ public class SCConnectionHelper {
     };*/
 
     private void addDevice(BluetoothDevice device, int rssi) {
+        Log.e("scandevice","call"+device.getAddress()+device.getName()+device);
         boolean deviceFound = false;
         for (BluetoothDevice listDev : deviceList) {
             if (listDev.getAddress().equals(device.getAddress())) {
@@ -237,13 +236,13 @@ public class SCConnectionHelper {
             if (action.equals(UartService.ACTION_GATT_CONNECTED)) {
                 mState = UART_PROFILE_CONNECTED;
                 Log.e("broadcastconnected", "call");
-                isConnected = true;
+                /*isConnected = true;
                 if (scanDeviceInterface == null) {
                     //Fire proper event. bitmapList or error message will be sent to
                     //class which set scanDeviceInterface.
                 } else {
                     scanDeviceInterface.onSuccessForConnection("Device Connected");
-                }
+                }*/
             }
             //*********************//
             if (action.equals(UartService.ACTION_GATT_DISCONNECTED)) {
@@ -259,13 +258,21 @@ public class SCConnectionHelper {
             }
             //*********************//
             if (action.equals(UartService.ACTION_GATT_SERVICES_DISCOVERED)) {
-               // SCTestAnalysis.getInstance().mService.enableTXNotification();
+                Log.e("servicedis","call");
+                // SCTestAnalysis.getInstance().mService.enableTXNotification();
+                isConnected = true;
+                if (scanDeviceInterface == null) {
+                    //Fire proper event. bitmapList or error message will be sent to
+                    //class which set scanDeviceInterface.
+                } else {
+                    scanDeviceInterface.onSuccessForConnection("Device Connected");
+                }
             }
             //*********************//
             if (action.equals(UartService.ACTION_DATA_AVAILABLE)) {
 
-                final byte[] txValue = intent.getByteArrayExtra(UartService.EXTRA_DATA);
-                Log.e("Received Bytes", "" + txValue.length);
+                /*final byte[] txValue = intent.getByteArrayExtra(UartService.EXTRA_DATA);
+                Log.e("Received Bytes", "" + txValue.length);*/
             }
             //*********************//
             if (action.equals(UartService.DEVICE_DOES_NOT_SUPPORT_UART)) {
@@ -285,11 +292,11 @@ public class SCConnectionHelper {
 
 
     public void initilizeSevice() {
-        Intent bindIntent = new Intent(SpectroCareSDK.getInstance().context, UartService.class);
+        /*Intent bindIntent = new Intent(SpectroCareSDK.getInstance().context, UartService.class);
         SpectroCareSDK.getInstance().context.bindService(bindIntent, mServiceConnection, SpectroCareSDK.getInstance().context.BIND_AUTO_CREATE);
         LocalBroadcastManager.getInstance(SpectroCareSDK.getInstance().context).registerReceiver(UARTStatusChangeReceiver, makeGattUpdateIntentFilter());
-    }
-    private IntentFilter makeGattUpdateIntentFilter() {
+   */ }
+    private  IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(UartService.ACTION_GATT_CONNECTED);
         intentFilter.addAction(UartService.ACTION_GATT_DISCONNECTED);
@@ -422,6 +429,7 @@ public class SCConnectionHelper {
     }
     public void  prepareCommandForUV(boolean isOn) {
         if(isOn){
+            Log.e("prepareCommandForUV", "call" + UV_TURN_ON);
             SCTestAnalysis.getInstance().sendString(UV_TURN_ON);
         }else{
             SCTestAnalysis.getInstance().sendString(UV_TURN_OFF);
@@ -580,8 +588,8 @@ public class SCConnectionHelper {
     }
     public void initializeAdapterAndServcie() {
         initilizeSevice();
-         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        // scanner = mBluetoothAdapter.getBluetoothLeScanner();
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        scanner = mBluetoothAdapter.getBluetoothLeScanner();
     }
 
     public void activateScanNotification(ScanDeviceInterface scanDeviceInterface1) {
@@ -594,7 +602,7 @@ public class SCConnectionHelper {
         //the first that is sent when the process is successful.
         void onSuccessForConnection(String msg);
 
-        void onSuccessForScanning(ArrayList<BluetoothDevice> deviceArray, boolean msg);
+        void onSuccessForScanning(ArrayList<BluetoothDevice> deviceArray,boolean msg);
 
         //And The second message, when the process will fail.
         void onFailureForConnection(String error);
@@ -603,5 +611,7 @@ public class SCConnectionHelper {
     }
 
 }
+
+
 
 
