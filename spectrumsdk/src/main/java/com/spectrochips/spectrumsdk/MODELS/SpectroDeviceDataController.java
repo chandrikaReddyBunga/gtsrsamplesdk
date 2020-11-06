@@ -510,20 +510,9 @@ public class SpectroDeviceDataController {
         }
     }
 
-    public void updateMotorSteps() {
+     public void updateMotorSteps() {
         motorSteps = spectroDeviceObject.stripControl.steps;
-           /* motorSteps.sort(new Comparator<Steps>() {
-                @Override
-                public int compare(Steps steps1, Steps steps2) {
-                    String s1 = String.valueOf(steps1.getStripIndex());
-                    String s2 = String.valueOf(steps2.getStripIndex());
-                    return s1.compareTo(s2);
-                }
-            });*/
         spectroDeviceObject.stripControl.steps = sortBasedOnIndex(motorSteps);
-        for(int i=0;i<motorSteps.size();i++){
-            Log.e("stepsdata","calling"+motorSteps.get(i).getStripIndex()+"testname"+motorSteps.get(i).getTestName());
-        }
 
         if (SCTestAnalysis.getInstance().jsonFileInterface!=null){
             SCTestAnalysis.getInstance().jsonFileInterface.onSuccessForConfigureJson();
@@ -533,11 +522,12 @@ public class SpectroDeviceDataController {
         Collections.sort(urineResults, new Comparator<Steps>() {
             @Override
             public int compare(Steps s1, Steps s2) {
-                return String.valueOf(s2.getStripIndex()).compareTo(String.valueOf(s1.getStripIndex()));
+                return Integer.valueOf(s1.getStripIndex()).compareTo(Integer.valueOf(s2.getStripIndex()));
             }
         });
         return urineResults;
     }
+  
     public Steps calculateTheRealDistanceStpesAndDirectionForTestItem(int position) {
         Steps tempObjMotorStep = motorSteps.get(position);
         if (position == 0) {  // Handle the First object by adding required values.
