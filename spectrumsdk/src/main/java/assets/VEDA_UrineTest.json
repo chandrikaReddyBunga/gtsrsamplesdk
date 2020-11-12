@@ -121,7 +121,7 @@
                 "testName": "Protein",
                 "noOfSteps": 73,
                 "distanceInMM": 0,
-                "direction": "",
+                "direction": "CCW",
                 "dwellTimeInSec": 2,
                 "standardWhiteIndex": 0,
                 "noOfAverage": 15
@@ -131,7 +131,7 @@
                 "noOfSteps": 73,
                 "testName": "PH",
                 "distanceInMM": 0,
-                "direction": "",
+                "direction": "CCW",
                 "dwellTimeInSec": 2,
                 "standardWhiteIndex": 0,
                 "noOfAverage": 15
@@ -141,7 +141,7 @@
                 "noOfSteps": 73,
                 "testName": "Occult Blood",
                 "distanceInMM": 0,
-                "direction": "",
+                "direction": "CCW",
                 "dwellTimeInSec": 2,
                 "standardWhiteIndex": 0,
                 "noOfAverage": 15
@@ -151,7 +151,7 @@
                 "noOfSteps": 73,
                 "testName": "Specific Gravity",
                 "distanceInMM": 0,
-                "direction": "",
+                "direction": "CCW",
                 "dwellTimeInSec": 2,
                 "standardWhiteIndex": 0,
                 "noOfAverage": 15
@@ -161,7 +161,7 @@
                 "noOfSteps": 73,
                 "testName": "Ketone",
                 "distanceInMM": 0,
-                "direction": "",
+                "direction": "CCW",
                 "dwellTimeInSec": 2,
                 "standardWhiteIndex": 0,
                 "noOfAverage": 15
@@ -171,7 +171,7 @@
                 "noOfSteps": 73,
                 "testName": "Bilirubin",
                 "distanceInMM": 0,
-                "direction": "",
+                "direction": "CCW",
                 "dwellTimeInSec": 2,
                 "standardWhiteIndex": 0,
                 "noOfAverage": 15
@@ -181,7 +181,7 @@
                 "noOfSteps": 73,
                 "testName": "Glucose",
                 "distanceInMM": 0,
-                "direction": "",
+                "direction": "CCW",
                 "dwellTimeInSec": 2,
                 "standardWhiteIndex": 0,
                 "noOfAverage": 15
@@ -191,7 +191,7 @@
                 "noOfSteps": 73,
                 "testName": "S.W.",
                 "distanceInMM": 0,
-                "direction": "",
+                "direction": "CCW",
                 "dwellTimeInSec": 2,
                 "standardWhiteIndex": 1,
                 "noOfAverage": 15
@@ -199,9 +199,9 @@
             {
                 "stripIndex": 12,
                 "testName": "Eject",
-                "noOfSteps": 750,
+                "noOfSteps": 900,
                 "distanceInMM": 0,
-                "direction": "",
+                "direction": "CW",
                 "dwellTimeInSec": 0,
                 "standardWhiteIndex": 0,
                 "noOfAverage": 0
