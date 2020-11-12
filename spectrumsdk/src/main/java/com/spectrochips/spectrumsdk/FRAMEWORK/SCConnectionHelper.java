@@ -49,7 +49,7 @@ public class SCConnectionHelper {
     private static SCConnectionHelper myObj;
     public boolean isConnected = false;
     public BluetoothAdapter mBluetoothAdapter;
-    public BluetoothLeScanner scanner;
+    //  public BluetoothLeScanner scanner;
     private boolean mScanning;
     private static final int UART_PROFILE_CONNECTED = 20;
     private static final int UART_PROFILE_DISCONNECTED = 21;
@@ -79,22 +79,22 @@ public class SCConnectionHelper {
         deviceList.clear();
         startScan(true);
     }
-    /* public void startScan(boolean enable) {
-         if (enable) {
-             this.mHandler.postDelayed(new Runnable() {
-                 public void run() {
-                     mScanning = false;
+    public void startScan(boolean enable) {
+        if (enable) {
+            this.mHandler.postDelayed(new Runnable() {
+                public void run() {
+                    mScanning = false;
                     // mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                 }
-             }, 10000L);
-             this.mScanning = true;
-             this.mBluetoothAdapter.startLeScan(this.mLeScanCallback);
-         } else {
-             this.mScanning = false;
-             this.mBluetoothAdapter.stopLeScan(this.mLeScanCallback);
-         }
-      }*/
-    private final ScanCallback scanCallback = new ScanCallback() {
+                }
+            }, 10000L);
+            this.mScanning = true;
+            this.mBluetoothAdapter.startLeScan(this.mLeScanCallback);
+        } else {
+            this.mScanning = false;
+            this.mBluetoothAdapter.stopLeScan(this.mLeScanCallback);
+        }
+    }
+    /*private final ScanCallback scanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             BluetoothDevice device = result.getDevice();
@@ -111,10 +111,10 @@ public class SCConnectionHelper {
             Log.e("onScanFailed", "call" +errorCode);
             // Ignore for now
         }
-    };
-    public void startScan(final boolean enable) {
+    };*/
+   /* public void startScan(final boolean enable) {
         Log.e("scanmethod","call"+enable);
-        final UUID uuid = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb");
+       final UUID uuid = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb");
         if (enable) {
             mHandler.postDelayed(new Runnable() {
                 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -138,15 +138,15 @@ public class SCConnectionHelper {
                         }
                     }
                     ScanSettings scanSettings=null;
-                    // if(android.os.Build.VERSION.SDK_INT >=Build.VERSION_CODES.M){
-                    scanSettings = new ScanSettings.Builder()
-                            .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
-                            .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
-                            .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
-                            .setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT)
-                            .setReportDelay(0L)
-                            .build();
-                    // }
+                   // if(android.os.Build.VERSION.SDK_INT >=Build.VERSION_CODES.M){
+                         scanSettings = new ScanSettings.Builder()
+                                .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
+                                .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
+                                .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
+                                .setNumOfMatches(ScanSettings.MATCH_NUM_ONE_ADVERTISEMENT)
+                                .setReportDelay(0L)
+                                .build();
+                   // }
                     if (scanner != null) {
                         scanner.startScan(filters, scanSettings, scanCallback);
                         Log.d(TAG, "scan started");
@@ -155,30 +155,30 @@ public class SCConnectionHelper {
                         Log.e(TAG, "could not get scanner object");
                         startScan(true);
                     }
-                    // startScan(true);
-                    // didDevicesNotFound();
+                   // startScan(true);
+                   // didDevicesNotFound();
                 }
             }, SCAN_PERIOD);
             mScanning = true;
-            //  mBluetoothAdapter.startLeScan(mLeScanCallback);
+        //  mBluetoothAdapter.startLeScan(mLeScanCallback);
         } else {
             mScanning = false;
             stopScan();
         }
     }
-
+*/
     private void didDevicesNotFound() {
         scanDeviceInterface.onSuccessForScanning(deviceList,false);
     }
 
     public void stopScan() {
-        scanner.stopScan(scanCallback);
-        //  mBluetoothAdapter.stopLeScan(mLeScanCallback);
+        // scanner.stopScan(scanCallback);
+        mBluetoothAdapter.stopLeScan(mLeScanCallback);
         mHandler.removeCallbacksAndMessages(null);
     }
     private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
         public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
-            if (device.getAddress() != null) {
+            if (device.getAddress() != null && device.getName()!=null) {
                 addDevice(device, rssi);
             }
         }
@@ -555,9 +555,15 @@ public class SCConnectionHelper {
     }
 
     public void prepareCommandForMotorMove(int steps, String direction) {
+        String stepsInString=String.valueOf(steps);
         String commandForMotorControl = START_TAG;
         commandForMotorControl = commandForMotorControl + direction;
-        commandForMotorControl = commandForMotorControl + String.valueOf(steps);
+        if(stepsInString.length()==2){
+            stepsInString="0"+stepsInString;
+        }else if(stepsInString.length()==1){
+            stepsInString="00"+stepsInString ;
+        }
+        commandForMotorControl = commandForMotorControl + stepsInString;
         commandForMotorControl = commandForMotorControl + END_TAG;
         SCTestAnalysis.getInstance().sendString(commandForMotorControl);
     }
@@ -589,7 +595,7 @@ public class SCConnectionHelper {
     public void initializeAdapterAndServcie() {
         initilizeSevice();
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        scanner = mBluetoothAdapter.getBluetoothLeScanner();
+        //  scanner = mBluetoothAdapter.getBluetoothLeScanner();
     }
 
     public void activateScanNotification(ScanDeviceInterface scanDeviceInterface1) {
@@ -611,6 +617,7 @@ public class SCConnectionHelper {
     }
 
 }
+
 
 
 
