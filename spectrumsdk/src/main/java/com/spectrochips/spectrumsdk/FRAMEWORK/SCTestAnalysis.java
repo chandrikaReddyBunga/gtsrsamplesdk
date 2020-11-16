@@ -56,9 +56,10 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.MOVE_
 import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.MOVE_STRIP_COUNTER_CLOCKWISE_TAG;
 import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TURN_OFF;
 import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TURN_ON;
-
-
-     public class SCTestAnalysis extends Activity {
+/**
+ * Created by ADMIN on 14-05-2019.
+ */
+public class SCTestAnalysis extends Activity {
     private static SCTestAnalysis ourInstance;
     //public Context context;
     public ArrayList<Steps> motorSteps;
@@ -1371,3 +1372,4 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
     public interface EjectInterface {
         void ejectStrip(boolean bool);
     }
+}
