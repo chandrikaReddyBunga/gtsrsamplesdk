@@ -507,14 +507,14 @@ public class SCTestAnalysis extends Activity {
                 commandNumber = commandNumber + 1;
             } else {
                 Log.e("abort5", "call");
-                /*if(isInterrupted){
+                if(isInterrupted){ //for abort from my own logic.
                    // Log.e("abort234","call");
                     if (abortInterface != null) {
                         abortInterface.onAbortForTesting(true);
                         abortInterface = null;
                         clearCache();
                     }
-                }*/
+                }
                 if (command.equals(UV_TURN_ON)) {
                     new Timer().schedule(new TimerTask() {
                         @Override
