@@ -57,7 +57,8 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.MOVE_
 import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TURN_OFF;
 import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TURN_ON;
 
-public class SCTestAnalysis extends Activity {
+
+     public class SCTestAnalysis extends Activity {
     private static SCTestAnalysis ourInstance;
     //public Context context;
     public ArrayList<Steps> motorSteps;
@@ -89,10 +90,11 @@ public class SCTestAnalysis extends Activity {
     private SyncingInterface syncingInterface;
     public JsonFileInterface jsonFileInterface;
     private AbortInterface abortInterface;
+    private EjectInterface ejectInterface;
+
     private boolean isEjectType = false;
     private boolean isInterrupted = false;
-    public   ArrayList<TestFactors> testResults = new ArrayList<>();
-    private EjectInterface ejectInterface;
+    public ArrayList<TestFactors> testResults = new ArrayList<>();
 
     // public String  receivedDataStringString = "";
 
@@ -112,24 +114,33 @@ public class SCTestAnalysis extends Activity {
         loadDefaultSpectrodeviceObject("VEDA_UrineTest.json");
         loadInterface();
     }
-    public void loadInterface(){
+
+    public void loadInterface() {
         syncDeviceData(new TestDataInterface() {
             @Override
             public void gettingData(byte[] data) {
+                Log.e("xxxxxxxxxxxx", "call" + data.length);
                 final byte[] txValue = data;
                 String text = decodeUTF8(txValue);
+                Log.e("ReceivedBytes", "call" + text);
                 socketDidReceiveMessage(text, requestCommand);
             }
+
             @Override
             public void testComplete(ArrayList<TestFactors> results, String msg) {
-                testResults=results;
+                testResults = results;
                 Log.e("testCompleteReceived", "call" + testResults.size());
-                if(testAnalysisListener !=null){
-                    testAnalysisListener.onSuccessForTestComplete(testResults,"Test Complete");
+                if (testAnalysisListener != null) {
+                    testAnalysisListener.onSuccessForTestComplete(testResults, "Test Complete");
                 }
             }
+            /*@Override
+            public void getCommandAndResponse(String msg) {
+
+            }*/
         });
     }
+
     public TestDataInterface testDataInterface;
 
     public void syncDeviceData(TestDataInterface testDataInterface1) {
@@ -138,7 +149,9 @@ public class SCTestAnalysis extends Activity {
 
     public interface TestDataInterface {
         void gettingData(byte[] data);
+
         void testComplete(ArrayList<TestFactors> results, String msg);
+        //void getCommandAndResponse(String msg);
     }
 
     public boolean canDo() {
@@ -173,6 +186,8 @@ public class SCTestAnalysis extends Activity {
         if (SpectroDeviceDataController.getInstance().spectroDeviceObject != null) {
             spectroDeviceObject = SpectroDeviceDataController.getInstance().spectroDeviceObject;
             motorSteps = spectroDeviceObject.getStripControl().getSteps();
+            Log.e("loadDefaultSpect", "call" + spectroDeviceObject.getStripControl().getDistanceFromHolderEdgeTo1STStripInMM());
+            Log.e("loadDefaultSpect", "call" + motorSteps.size());
 
         }
     }
@@ -183,7 +198,10 @@ public class SCTestAnalysis extends Activity {
        /* stripNumber = 0;
         SCConnectionHelper.getInstance().prepareCommandForMoveToPosition();*/
     }
-    public void startTesting(){
+
+    public void startTesting() {
+        isInterrupted = false;
+        isEjectType = false;
         stripNumber = 0;
         SCConnectionHelper.getInstance().prepareCommandForMoveToPosition();
     }
@@ -221,10 +239,12 @@ public class SCTestAnalysis extends Activity {
         pixelXAxis.clear();
         int roiArray[] = spectroDeviceObject.getImageSensor().getROI();
         int pixelCount = roiArray[1];
+        Log.e("pixelcount", "call" + pixelCount);
 
         for (int i = 1; i <= pixelCount; i++) {
             pixelXAxis.add(Float.valueOf(i));
         }
+        Log.e("pixelcountarray", "call" + pixelXAxis.toString());
 
     }
 
@@ -233,6 +253,7 @@ public class SCTestAnalysis extends Activity {
         for (int i = 0; i < pixelXAxis.size(); i++) {
             wavelengthXAxis.add(pixelXAxis.get(i));
         }
+        Log.e("reprocessWavelength", "call" + wavelengthXAxis.toString());
         wavelengthXAxis.clear();
         if (spectroDeviceObject.getWavelengthCalibration() != null) {
             double[] resultArray = spectroDeviceObject.getWavelengthCalibration().getCoefficients();
@@ -243,6 +264,7 @@ public class SCTestAnalysis extends Activity {
             for (int index = 0; index < pixelXAxis.size(); index++) {
                 wavelengthXAxis.add(Float.valueOf(df.format(poly.predictY(resultArray, pixelXAxis.get(index)) * 100 / 100)));
             }
+            Log.e("reprocessWavelength", "call" + wavelengthXAxis.toString());
         }
     }
 
@@ -253,6 +275,7 @@ public class SCTestAnalysis extends Activity {
             for (RCTableData objRc : spectroDeviceObject.getRCTable()) {
                 IntensityChart objIntensity = new IntensityChart();
                 objIntensity.setTestName(objRc.getTestItem());
+                Log.e("ssss", "" + objIntensity.getTestName());
                 objIntensity.setPixelMode(true);
                 objIntensity.setOriginalMode(true);
                 objIntensity.setAutoMode(true);
@@ -308,6 +331,7 @@ public class SCTestAnalysis extends Activity {
         SpectroCareSDK.getInstance().context.bindService(gattServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
         LocalBroadcastManager.getInstance(SpectroCareSDK.getInstance().context).registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (this.mService != null) {
+            Log.e("sasassa", "Connect request result");
         }
     }
 
@@ -346,10 +370,40 @@ public class SCTestAnalysis extends Activity {
                 //showMessage("Device Disconnected.");
             }
             if (action.equals(UartService.ACTION_GATT_SERVICES_DISCOVERED)) {
-
+                //  mService.enableTXNotification();
+                Log.e("zxzxzxzzx", "call");
+               /* SCConnectionHelper.getInstance().isConnected=true;
+                if (SCConnectionHelper.getInstance().scanDeviceInterface == null) {
+                } else {
+                    SCConnectionHelper.getInstance().scanDeviceInterface.onSuccessForConnection("Device Connected");
+                }*/
             }
             if (action.equals(UartService.ACTION_DATA_AVAILABLE_DATA)) {
+               /* final byte[] txValue = intent.getByteArrayExtra(UartService.EXTRA_DATA);
+                String text = decodeUTF8(txValue);
+                Log.e("ReceivedBytes", "call" + text);
+                socketDidReceiveMessage(text, requestCommand);*/
+               /*// try {
+                    if (txValue.length > 0) {
+                        String text = decodeUTF8(txValue);
+                        Log.e("decodeUTF8", "call" + text);
+                        socketDidReceiveMessage(text, requestCommand);
+                        *//*if (text.length() > 0) {
+                            if (text.contains("^2560#")) {
+                                cal_c = 0;
+                                cal_c = txValue.length - 6;
+                            } else if (text.contains("^EOF#") || text.contains("EOF#") || text.contains("OF#") || text.contains("F#")) {
+                                cal_c += (txValue.length- 5);
+                                Log.e("RESPONSE", "Total bytes = " + cal_c);
+                            } else {
+                                cal_c += txValue.length;
+                            }
 
+                        }*//*
+                    }
+               *//* } catch (Exception e) {
+                    Log.e("exception", e.toString());
+                }*/
             }
             if (action.equals(UartService.DEVICE_DOES_NOT_SUPPORT_UART)) {
                 SCConnectionHelper.getInstance().disconnectWithPeripheral();
@@ -379,18 +433,28 @@ public class SCTestAnalysis extends Activity {
 
     public void socketDidReceiveMessage(String response, String request) {
         Log.e("datacount", "call" + response + "request" + request);
-        if(testAnalysisListener !=null){
+        if (testAnalysisListener != null) {
             testAnalysisListener.getRequestAndResponse(response);
         }
+        // Log.e("hexStringreceivedDataString", "call" + rawBuffer2Hex(data));
         receivedDataString = receivedDataString + response;
 
         if (receivedDataString.toUpperCase().startsWith("^ERR#") || receivedDataString.toUpperCase().startsWith("$ERR#")) {
-                       Log.e("^ERR#DataRecieved", "call");
+            /*HashMap<String, String> dictionary = new HashMap<String, String>();
+            dictionary.put("request", request);
+            dictionary.put("response", receivedDataString);*/
+            // NotificationCenter.default.post(name: NOTIFICATION_DATA_AVAILABLE.name, object: self, userInfo:dictionary)
+            Log.e("^ERR#DataRecieved", "call");
             dataRecieved(receivedDataString, request);
             receivedDataString = "";
         }
 
         if (receivedDataString.toUpperCase().startsWith("$OK#") || receivedDataString.toUpperCase().startsWith("$OK!") || receivedDataString.toUpperCase().startsWith("^OK#")) {
+            //   if (request.equals("$POR#")) {
+            // receivedDataString = "$POS#";
+                /*HashMap<String, String> dictionary = new HashMap<String, String>();
+                dictionary.put("request", request);
+                dictionary.put("response", receivedDataString);*/
             Log.e("$OK# Data Recieved", "call");
             dataRecieved(receivedDataString, request);
             receivedDataString = "";
@@ -399,30 +463,114 @@ public class SCTestAnalysis extends Activity {
         // 2423 - $# - invalid data
         if (receivedDataString.toUpperCase().startsWith("$#")) {
             receivedDataString = "";
+            //swal("Error", "Cofiguration error!", "error");
         }
 
         // Position Sensor success response  ^POS# or $POS#
         if (receivedDataString.toUpperCase().startsWith("^POS#") || receivedDataString.toUpperCase().startsWith("$POS#")) {
+           /* HashMap<String, String> dictionary = new HashMap<String, String>();
+            dictionary.put("request", request);
+            dictionary.put("response", receivedDataString);*/
             dataRecieved(receivedDataString, request);
             receivedDataString = "";
         }
 
         // Motor move stop Sensor. ^STP#
         if (receivedDataString.toUpperCase().startsWith("^STP#") || receivedDataString.toUpperCase().startsWith("$STP#")) {
+           /* HashMap<String, String> dictionary = new HashMap<String, String>();
+            dictionary.put("request", request);
+            dictionary.put("response", receivedDataString);*/
             dataRecieved(receivedDataString, request);
             receivedDataString = "";
         }
 
         //notify graph processing only when we got complete data 5e3235363023
         if (receivedDataString.toUpperCase().startsWith("^288$") && receivedDataString.toUpperCase().endsWith("^EOF#")) {
+           /* HashMap<String, String> dictionary = new HashMap<String, String>();
+            dictionary.put("request", request);
+            dictionary.put("response", receivedDataString);*/
             Log.e("receivedDataStringcall", "call" + receivedDataString);
             intensityDataRecieved(receivedDataString, request);
             receivedDataString = "";
         }
+
+       /* try {
+            outputStream.write(response.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        receivedDataString = receivedDataString + response;//rawBuffer2Hex(data);
+
+        // 5e45525223 - ^ERR#
+        if (receivedDataString.startsWith("5e45525223")) {
+            receivedDataString = "";
+            socketresponseData = outputStream.toByteArray();
+            dataRecieved(outputStream.toString(), request);
+            outputStream.reset();
+            socketresponseData = null;
+            Log.e("^ERR# Data Recieved", "call");
+        }
+        //244f4b23 - $OK#
+        if (receivedDataString.startsWith("244f4b23") || receivedDataString.startsWith("244f4b21") || receivedDataString.startsWith("5e4f4b23")) {
+            receivedDataString = "";
+            socketresponseData = outputStream.toByteArray();
+            dataRecieved(outputStream.toString(), request);
+            outputStream.reset();
+            socketresponseData = null;
+            Log.e("$OK# Data Recieved", "call");
+
+        }
+        if (receivedDataString.startsWith("2445525223")) {
+            receivedDataString = "";
+            socketresponseData = outputStream.toByteArray();
+            dataRecieved(outputStream.toString(), request);
+            outputStream.reset();
+            socketresponseData = null;
+        }
+
+        // 2423 - $# - invalid data
+        if (receivedDataString.startsWith("2423")) {
+            receivedDataString = "";
+            outputStream.reset();
+            socketresponseData = null;
+            //swal("Error", "Cofiguration error!", "error");
+        }
+        // Position Sensor success response  ^POS#
+        if (receivedDataString.startsWith("5e504f5323") || receivedDataString.startsWith("24504f5323")) {
+            Log.e("poscall", "call" + receivedDataString);
+            receivedDataString = "";
+            socketresponseData = outputStream.toByteArray();
+            dataRecieved(outputStream.toString(), request);
+            outputStream.reset();
+            socketresponseData = null;
+        }
+        if (receivedDataString.startsWith("5e53545023") || (receivedDataString.startsWith("2453545023"))) {
+            receivedDataString = "";
+            socketresponseData = outputStream.toByteArray();
+            dataRecieved(outputStream.toString(), request);
+            outputStream.reset();
+            socketresponseData = null;
+        }
+
+        // Log.e("Intesnisty", "call" + outputStream.toByteArray().length);
+        //notify graph processing only when we got complete data 5e3235363023
+        if (receivedDataString.startsWith("5e") && receivedDataString.endsWith("5e454f4623")) {
+            if (request.equals(INTESITY_VALUES_TAG)) {
+                receivedDataString = "";
+                socketresponseData = outputStream.toByteArray();
+                intensityDataRecieved(outputStream.toString(), request);
+                outputStream.reset();
+                socketresponseData = null;
+                Log.e("Intesnisty received", "Intesnisty Data Recieved");
+            }
+
+        }*/
     }
 
     //intenisityDataRecieved
     private void intensityDataRecieved(String responseData, String request) {
+        Log.e("intensityDataRecieved", "call" + request + responseData.length());
+
         if (processIntensityValues(responseData)) {
             if (!isForDarkSpectrum) {
                 performMotorStepsFunction();
@@ -431,6 +579,7 @@ public class SCTestAnalysis extends Activity {
                 syncingInterface.isSyncingCompleted(true);
             }
         } else {
+            Log.e("processIntensityfalse", "calll");
             requestCommand = "";
             new Timer().schedule(new TimerTask() {
                 @Override
@@ -447,13 +596,14 @@ public class SCTestAnalysis extends Activity {
             }, 1000 * 1);*/
         }
     }
-
     private void dataRecieved(String responseData, String request) {
+        Log.e("dataRecieved", "call" + request + responseData);
         processResponseData(request, responseData);
     }
 
     private void processResponseData(String command, String response) {
         //String decodeStr = decodeUTF8(byteArray);
+        Log.e("DeviceData", "CalledResponse" + command + ":" + response);
         if (response.contains("OK")) {
             // Log.e("abort2","call");
             if (isForSync) {
@@ -487,11 +637,11 @@ public class SCTestAnalysis extends Activity {
                             @Override
                             public void run() {
                                 syncingInterface.isSyncingCompleted(true);
+                                Log.e("isSyncingCompleted", "call");
                                 getDarkSpectrum();
                                 syncDone();
                             }
                         }, 1000);
-                      
                         break;
                     default:
                         syncingInterface.isSyncingCompleted(false);
@@ -501,7 +651,7 @@ public class SCTestAnalysis extends Activity {
                 commandNumber = commandNumber + 1;
             } else {
                 Log.e("abort5", "call");
-               if (isInterrupted) { //for test abort from my side
+                if (isInterrupted) { //for test abort from my side
                     if (abortInterface != null) {
                         abortInterface.onAbortForTesting(true);
                         abortInterface = null;
@@ -520,7 +670,6 @@ public class SCTestAnalysis extends Activity {
                             }
                         }
                     }, 1000);
-                  
                 }
             }
         } else if (response.contains("POS")) {
@@ -530,10 +679,8 @@ public class SCTestAnalysis extends Activity {
                     ledControl(true);
                 }
             }, 1000);
-           
         } else if (response.contains("STP")) {
-            Log.e("abort1", "call");
-           if (isInterrupted) {
+            if (isInterrupted) {
                 if (isEjectType) {// Call when eject completed. .
                     Log.e("ejecttype", "call");
                     isEjectType = false;
@@ -542,8 +689,7 @@ public class SCTestAnalysis extends Activity {
                         ejectInterface.ejectStrip(true);
                     }
                 }
-            }
-            else {
+            } else {
                 Log.e("abort7", "call");
                 if (stripNumber != motorSteps.size() - 1) {
                     int dwellTime = motorSteps.get(stripNumber).getDwellTimeInSec();
@@ -557,7 +703,6 @@ public class SCTestAnalysis extends Activity {
                             getIntensity();
                         }
                     }, 1000);
-                  
                 } else {
                     Log.e("abort9", "call");
                     stripNumber = 0;
@@ -590,6 +735,7 @@ public class SCTestAnalysis extends Activity {
     }
 
     public void unRegisterReceiver() {
+        Log.e("unRegisterReceiver", "call");
         isForSync = false;
         if (isInterrupted && isEjectType) {
             mService.disconnect();
@@ -618,6 +764,22 @@ public class SCTestAnalysis extends Activity {
         return str;
     }
 
+    public void ejectStripCommand() {
+        final String ejectCommand = "$MRS900#";
+        Log.e("ejectStripCommand", "call" + ejectCommand);
+        if (SCConnectionHelper.getInstance().isConnected) {
+            isEjectType = true;
+            isInterrupted = true;
+            ledControl(false);
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    sendString(ejectCommand);
+                }
+            }, 1000);
+        }
+    }
+
     public void clearCache() {
         receivedDataString = "";
         socketresponseData = null;
@@ -636,17 +798,35 @@ public class SCTestAnalysis extends Activity {
 
         clearCache();
         requestCommand = message;
-        if(testAnalysisListener !=null){
+        if (testAnalysisListener != null) {
             testAnalysisListener.getRequestAndResponse("----------Send Command--------------");
         }
-        if(testAnalysisListener !=null){
+        if (testAnalysisListener != null) {
             testAnalysisListener.getRequestAndResponse(message);
         }
+
         byte[] value;
         try {
             //send data to service
             value = message.getBytes("UTF-8");
             mService.writeRXCharacteristic(message);//(packet);
+           /* int len = value.length;
+            int index = 0;*/
+
+           /* while (len > 0) {
+
+                int packet_len;
+                packet_len = (len >= 20) ? 20 : len;
+                byte[] packet = new byte[packet_len];
+                System.arraycopy(value, index, packet, 0, packet_len);
+                mService.writeRXCharacteristic(packet);//(packet);
+                len -= packet_len;
+                index += packet_len;
+
+            }*/
+            //  mService.writeRXCharacteristic(value);
+            //Update the log with time stamp
+            String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
         } catch (UnsupportedEncodingException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -654,6 +834,7 @@ public class SCTestAnalysis extends Activity {
     }
 
     private boolean processIntensityValues(String response/*byte[] data*/) {
+        Log.e("processIntensityValues", "calling" + response.length());
         hexaDecimalArray = new ArrayList<>();
         intensityArray = new ArrayList<>();
         ArrayList<String> intensityArray1 = new ArrayList<>();
@@ -667,7 +848,7 @@ public class SCTestAnalysis extends Activity {
 
         if (intensityArray1.size() != pixelXAxis.size()) {
             Log.e("intensityDatamismatched", "call" + pixelXAxis.size());
-            if(testAnalysisListener !=null){
+            if (testAnalysisListener != null) {
                 testAnalysisListener.getRequestAndResponse("intensity Data Mismatched");
             }
             return false;
@@ -704,7 +885,7 @@ public class SCTestAnalysis extends Activity {
     }
 
     private void setIntensityArrayForTestItem() {
-        Steps currentObject = motorSteps.get(stripNumber-1);
+        Steps currentObject = motorSteps.get(stripNumber - 1);
         /*if(testAnalysisListener !=null){
             testAnalysisListener.getRequestAndResponse("Intensity for "+currentObject.getTestName());
         }*/
@@ -789,6 +970,9 @@ public class SCTestAnalysis extends Activity {
             ArrayList<Float> swSubstratedArray = getStandardwhiteSubstrateArray();
             for (IntensityChart objIntensitychartObject : intensityChartsArray) {
                 if (!objIntensitychartObject.getTestName().equals(standardWhiteTitle) && !objIntensitychartObject.getTestName().equals(darkSpectrumTitle)) {
+                    Log.e("getyAxisArray", "call" + objIntensitychartObject.getyAxisArray().toString());
+                    Log.e("getTestName", "call" + objIntensitychartObject.getTestName().toString());
+                    // Log.e("aaaasddssdd", "call"+swSubstratedArray.toString());
                     ArrayList<Float> originalArray = getOriginalDivReference(objIntensitychartObject.getSubstratedArray(), swSubstratedArray);
                     double interpolationValue = getClosestValue(objIntensitychartObject.getWavelengthArray(), originalArray, objIntensitychartObject.getCriticalWavelength());
                     ReflectanceChart objReflectanceChart = new ReflectanceChart();
@@ -808,6 +992,8 @@ public class SCTestAnalysis extends Activity {
     }
 
     private ArrayList<Float> getOriginalDivReference(ArrayList<Float> originalArray, ArrayList<Float> referenceArray) {
+        //   Log.e("originalArray", "call" + originalArray.toString());
+        Log.e("referenceArray", "call" + referenceArray.toString());
         ArrayList<Float> divisionArray = new ArrayList<>();
         for (int i = 0; i < originalArray.size(); i++) {
             if (referenceArray.get(i) != 0) {
@@ -816,6 +1002,7 @@ public class SCTestAnalysis extends Activity {
                 divisionArray.add(0.0f);
             }
         }
+        Log.e("divisionArray", "call" + divisionArray.toString());
         return divisionArray;
     }
 
@@ -861,12 +1048,16 @@ public class SCTestAnalysis extends Activity {
     }
 
     private ArrayList<Float> sortXValuesArray(ArrayList<Float> xValues, final double criticalWavelength) {
+        Log.e("beforesort", "call" + xValues.toString());
+        Log.e("beforecritical", "call" + criticalWavelength);
         Collections.sort(xValues, new Comparator<Float>() {
             @Override
             public int compare(Float s1, Float s2) {
                 return Double.valueOf(Math.abs(criticalWavelength - s1)).compareTo(Double.valueOf(Math.abs(criticalWavelength - s2)));
             }
         });
+        Log.e("criticalWavelength", "call" + criticalWavelength);
+        Log.e("sortXValuesArray", "call" + xValues.toString());
         return xValues;
     }
 
@@ -876,6 +1067,12 @@ public class SCTestAnalysis extends Activity {
         ArrayList<Float> beforeXvalues = new ArrayList<>(xValues);
 
         ArrayList<Float> sortedArrayBasedOnDifference = sortXValuesArray(xValues, criticalWavelength);
+
+        Log.e("sortedOnDifference", "call" + sortedArrayBasedOnDifference.toString());
+        Log.e("yvluesarray", "call" + yValues.toString());
+        Log.e("yvluesarraysize", "call" + yValues.size());
+        Log.e("xvzlues", "call" + criticalWavelength);
+
         float firstXValue = sortedArrayBasedOnDifference.get(0);
         float secondXValue = sortedArrayBasedOnDifference.get(1);
 
@@ -907,6 +1104,8 @@ public class SCTestAnalysis extends Activity {
             ArrayList<RCTableData> rcTable = spectroDeviceObject.getRCTable();
             for (RCTableData objRCTable : rcTable) {
                 if (objRCTable.getTestItem().equals(testName)) {
+                    Log.e("rarray", "call" + objRCTable.getR().toString());
+                    Log.e("carray", "call" + objRCTable.getC().toString());
                     return objRCTable;
                 }
             }
@@ -1011,6 +1210,9 @@ public class SCTestAnalysis extends Activity {
             resultText = " " + getResultTextForTestItemwithValue(testName, finalValue);
             String testValue = getNumberFormatStringforTestNameWithValue(testName, finalValue);
 
+            Log.e("testunits", "" + unit + resultText + object.getReferenceRange());
+            Log.e("testresult", "" + resultText);
+            Log.e("testvalue", "" + testValue);
             sno = index + 1;
 
             TestFactors objTest = new TestFactors();
@@ -1025,18 +1227,23 @@ public class SCTestAnalysis extends Activity {
             testItems.add(objTest);
 
         }
-        if(testDataInterface !=null){
-            testDataInterface.testComplete(testItems,"test");
+        if (testDataInterface != null) {
+            testDataInterface.testComplete(testItems, "test");
         }
+        /*showMessage("Testingcompleted.");
+        testAnalysisListener.onSuccessForTestComplete(testItems, "Testing completed.");
+*/
     }
 
 
     private String getNumberFormatStringforTestNameWithValue(String testName, double value) {
+        Log.e("formantetestvalue", "" + value);
         String formattedString = String.valueOf(value);
 
         if (spectroDeviceObject.getRCTable() != null) {
             for (RCTableData objRCTable : spectroDeviceObject.getRCTable()) {
                 if (objRCTable.getTestItem().equals(testName)) {
+                    Log.e("numberformate", "call" + objRCTable.getNumberFormat());
                     if (objRCTable.getNumberFormat().equals("X")) {
                         formattedString = String.format("%.0f", value);
                     } else if (objRCTable.getNumberFormat().equals("X.X")) {
@@ -1057,6 +1264,7 @@ public class SCTestAnalysis extends Activity {
     public boolean getFlagForTestItemWithValue(String testName, double value) {
         boolean isOk = false;
         if (spectroDeviceObject.getRCTable() != null) {
+            Log.e("getrctable", "calling" + spectroDeviceObject.getRCTable().size());
             for (RCTableData objRc : spectroDeviceObject.getRCTable()) {
                 if (objRc.getTestItem().equals(testName)) {
                     if (objRc.getLimetLineRanges().get(0) != null) {
@@ -1078,6 +1286,7 @@ public class SCTestAnalysis extends Activity {
                 if (objRc.getTestItem().equals(testName)) {
                     for (LimetLineRanges objLimitRange : objRc.getLimetLineRanges()) {
                         if (value > objLimitRange.getCMinValue() && value <= objLimitRange.getCMaxValue()) {
+                            Log.e("linesymboal", "call" + objLimitRange.getLineSymbol());
                             return objLimitRange.getLineSymbol();
                         }
                     }
@@ -1086,21 +1295,7 @@ public class SCTestAnalysis extends Activity {
         }
         return "";
     }
-   public void ejectStripCommand() {
-        final String ejectCommand = "$MRS900#";
-        Log.e("ejectStripCommand", "call" + ejectCommand);
-        if (SCConnectionHelper.getInstance().isConnected) {
-            isEjectType = true;
-            isInterrupted = true;
-            ledControl(false);
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    sendString(ejectCommand);
-                }
-            }, 1000);
-        }
-    }
+
     /*public void startTestProcess(SyncingInterface syncingInterface1) {
         this.syncingInterface = syncingInterface1;
         removereceiver();
@@ -1111,6 +1306,11 @@ public class SCTestAnalysis extends Activity {
         removereceiver();
         initializeService();
         //syncSettingsWithDevice();
+    }
+
+    public void ejectTesting(EjectInterface abortInterface1) {
+        this.ejectInterface = abortInterface1;
+        // testAnalysisListener = null;
     }
 
     public void abortTesting(AbortInterface abortInterface1) {
@@ -1128,13 +1328,6 @@ public class SCTestAnalysis extends Activity {
                         ledControl(false);
                     }
                 }, 1000);
-                /*new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        isEjectType = true;
-                        ledControl(false);
-                    }
-                }, 5000);*/
             }
         }
     }
@@ -1165,19 +1358,16 @@ public class SCTestAnalysis extends Activity {
 
     public interface TeststaResultInterface {
         void onSuccessForTestComplete(ArrayList<TestFactors> results, String msg);
+
         void getRequestAndResponse(String data);
+
         void onFailureForTesting(String error);
     }
 
     public interface AbortInterface {
         void onAbortForTesting(boolean bool);
     }
-    public void ejectTesting(EjectInterface abortInterface1) {
-        this.ejectInterface = abortInterface1;
-        // testAnalysisListener = null;
-    }
+
     public interface EjectInterface {
         void ejectStrip(boolean bool);
     }
-
-}
