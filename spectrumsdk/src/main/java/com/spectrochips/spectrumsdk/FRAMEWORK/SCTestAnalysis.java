@@ -92,6 +92,7 @@ public class SCTestAnalysis extends Activity {
     private boolean isEjectType = false;
     private boolean isInterrupted = false;
     public   ArrayList<TestFactors> testResults = new ArrayList<>();
+    private EjectInterface ejectInterface;
 
     // public String  receivedDataStringString = "";
 
@@ -490,14 +491,7 @@ public class SCTestAnalysis extends Activity {
                                 syncDone();
                             }
                         }, 1000);
-                       /* new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                syncingInterface.isSyncingCompleted(true);
-                                getDarkSpectrum();
-                                syncDone();
-                            }
-                        }, 1000 * 1);*/
+                      
                         break;
                     default:
                         syncingInterface.isSyncingCompleted(false);
@@ -525,15 +519,7 @@ public class SCTestAnalysis extends Activity {
                             }
                         }
                     }, 1000);
-                   /* new Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (!isInterrupted) {
-                                stripNumber = 0;//1;
-                                getIntensity();
-                            }
-                        }
-                    }, 1000 * 1);*/
+                  
                 }
             }
         } else if (response.contains("POS")) {
@@ -543,23 +529,20 @@ public class SCTestAnalysis extends Activity {
                     ledControl(true);
                 }
             }, 1000);
-            /*new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    ledControl(true);
-                }
-            }, 1000 * 1);*/
+           
         } else if (response.contains("STP")) {
             Log.e("abort1", "call");
             if (isInterrupted) {
                 if (isEjectType) {// Call when eject completed. .
+                    Log.e("ejecttype", "call");
                     isEjectType = false;
                     isInterrupted = false;
-                    if (abortInterface != null) {
-                        abortInterface.onAbortForTesting(true);
+                    if (ejectInterface != null) {
+                        ejectInterface.ejectStrip(true);
                     }
                 }
-            } else {
+            }
+            else {
                 Log.e("abort7", "call");
                 if (stripNumber != motorSteps.size() - 1) {
                     int dwellTime = motorSteps.get(stripNumber).getDwellTimeInSec();
@@ -573,15 +556,7 @@ public class SCTestAnalysis extends Activity {
                             getIntensity();
                         }
                     }, 1000);
-                    /*Handler handler = new Handler();
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            requestCommand = "";
-                            stripNumber += 1;
-                            getIntensity();
-                        }
-                    }, dwellTime * 1000);*/
+                  
                 } else {
                     Log.e("abort9", "call");
                     stripNumber = 0;
@@ -1110,7 +1085,15 @@ public class SCTestAnalysis extends Activity {
         }
         return "";
     }
-
+  public void ejectStripCommand() {
+        String ejectCommand = "$MRS900#";
+        Log.e("motorPostionControl", "call" + ejectCommand);
+        if (SCConnectionHelper.getInstance().isConnected) {
+            isEjectType = true;
+            isInterrupted = true;
+            sendString(ejectCommand);
+        }
+    }
     /*public void startTestProcess(SyncingInterface syncingInterface1) {
         this.syncingInterface = syncingInterface1;
         removereceiver();
@@ -1181,6 +1164,13 @@ public class SCTestAnalysis extends Activity {
 
     public interface AbortInterface {
         void onAbortForTesting(boolean bool);
+    }
+    public void ejectTesting(EjectInterface abortInterface1) {
+        this.ejectInterface = abortInterface1;
+        // testAnalysisListener = null;
+    }
+    public interface EjectInterface {
+        void ejectStrip(boolean bool);
     }
 
 }
