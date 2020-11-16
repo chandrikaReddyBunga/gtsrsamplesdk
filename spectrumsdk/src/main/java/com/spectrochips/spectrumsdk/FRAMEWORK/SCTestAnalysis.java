@@ -501,12 +501,13 @@ public class SCTestAnalysis extends Activity {
                 commandNumber = commandNumber + 1;
             } else {
                 Log.e("abort5", "call");
-                if(isInterrupted){ //for abort from my own logic.
-                   // Log.e("abort234","call");
+               if (isInterrupted) { //for test abort from my side
                     if (abortInterface != null) {
                         abortInterface.onAbortForTesting(true);
                         abortInterface = null;
                         clearCache();
+                        ejectStripCommand();
+                        clearPreviousTestResulsArray();
                     }
                 }
                 if (command.equals(UV_TURN_ON)) {
@@ -532,7 +533,7 @@ public class SCTestAnalysis extends Activity {
            
         } else if (response.contains("STP")) {
             Log.e("abort1", "call");
-            if (isInterrupted) {
+           if (isInterrupted) {
                 if (isEjectType) {// Call when eject completed. .
                     Log.e("ejecttype", "call");
                     isEjectType = false;
@@ -1085,13 +1086,19 @@ public class SCTestAnalysis extends Activity {
         }
         return "";
     }
-  public void ejectStripCommand() {
-        String ejectCommand = "$MRS900#";
-        Log.e("motorPostionControl", "call" + ejectCommand);
+   public void ejectStripCommand() {
+        final String ejectCommand = "$MRS900#";
+        Log.e("ejectStripCommand", "call" + ejectCommand);
         if (SCConnectionHelper.getInstance().isConnected) {
             isEjectType = true;
             isInterrupted = true;
-            sendString(ejectCommand);
+            ledControl(false);
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    sendString(ejectCommand);
+                }
+            }, 1000);
         }
     }
     /*public void startTestProcess(SyncingInterface syncingInterface1) {
