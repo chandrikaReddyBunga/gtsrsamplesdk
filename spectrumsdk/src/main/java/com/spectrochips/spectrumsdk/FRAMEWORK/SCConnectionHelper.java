@@ -80,6 +80,7 @@ public class SCConnectionHelper {
         startScan(true);
     }
     public void startScan(boolean enable) {
+         deviceList.clear();
         if (enable) {
             this.mHandler.postDelayed(new Runnable() {
                 public void run() {
