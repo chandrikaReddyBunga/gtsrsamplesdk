@@ -80,7 +80,7 @@ public class SCConnectionHelper {
         startScan(true);
     }
     public void startScan(boolean enable) {
-       deviceList.clear();
+      // deviceList.clear();
         if (enable) {
             this.mHandler.postDelayed(new Runnable() {
                 public void run() {
@@ -177,6 +177,7 @@ public class SCConnectionHelper {
 
     public void stopScan() {
         // scanner.stopScan(scanCallback);
+         deviceList.clear();
         mBluetoothAdapter.stopLeScan(mLeScanCallback);
         mHandler.removeCallbacksAndMessages(null);
     }
