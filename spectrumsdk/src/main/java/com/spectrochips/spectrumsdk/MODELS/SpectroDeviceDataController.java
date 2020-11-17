@@ -203,9 +203,7 @@ public class SpectroDeviceDataController {
 
         } catch (JSONException e) {
             e.printStackTrace();
-           // if (SCTestAnalysis.getInstance().jsonFileInterface != null) {
-           //     SCTestAnalysis.getInstance().jsonFileInterface.onFailureForConfigureJson("failed");
-           // }
+          
         }
     }
 
