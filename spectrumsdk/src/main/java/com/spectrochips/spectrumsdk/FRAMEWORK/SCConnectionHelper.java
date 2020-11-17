@@ -599,7 +599,10 @@ public class SCConnectionHelper {
     }
 
     public void activateScanNotification(ScanDeviceInterface scanDeviceInterface1) {
-        this.scanDeviceInterface=scanDeviceInterface1;
+       if (scanDeviceInterface != null) {
+           scanDeviceInterface=null;
+        }
+        scanDeviceInterface=scanDeviceInterface1;
     }
 
     //In this interface, you can define messages, which will be send to owner.
