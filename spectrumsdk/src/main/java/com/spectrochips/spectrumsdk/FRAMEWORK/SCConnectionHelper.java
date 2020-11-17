@@ -76,11 +76,14 @@ public class SCConnectionHelper {
         if (deviceList.size() == 0) {
             didDevicesNotFound();
         }
-        deviceList.clear();
+       
         startScan(true);
     }
     public void startScan(boolean enable) {
-         deviceList.clear();
+       if(deviceList.size()>0){
+        }else{
+            deviceList.clear();
+        }
         if (enable) {
             this.mHandler.postDelayed(new Runnable() {
                 public void run() {
