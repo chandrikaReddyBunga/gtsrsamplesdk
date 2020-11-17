@@ -181,8 +181,8 @@ public class SCTestAnalysis extends Activity {
         this.jsonFileInterface = jsonFileInterface1;
     }
 
-    public void getDeviceSettings(String testName, String category, String date, JsonFileInterface jsonFileInterface1) {
-        this.jsonFileInterface = jsonFileInterface1;
+    public void getDeviceSettings(String testName, String category, String date) {
+       // this.jsonFileInterface = jsonFileInterface1;
         SpectroDeviceDataController.getInstance().loadJsonFromUrl(testName);
         if (SpectroDeviceDataController.getInstance().spectroDeviceObject != null) {
             spectroDeviceObject = SpectroDeviceDataController.getInstance().spectroDeviceObject;
