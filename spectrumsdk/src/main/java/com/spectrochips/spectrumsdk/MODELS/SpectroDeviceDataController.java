@@ -203,9 +203,9 @@ public class SpectroDeviceDataController {
 
         } catch (JSONException e) {
             e.printStackTrace();
-            if (SCTestAnalysis.getInstance().jsonFileInterface != null) {
-                SCTestAnalysis.getInstance().jsonFileInterface.onFailureForConfigureJson("failed");
-            }
+           // if (SCTestAnalysis.getInstance().jsonFileInterface != null) {
+           //     SCTestAnalysis.getInstance().jsonFileInterface.onFailureForConfigureJson("failed");
+           // }
         }
     }
 
@@ -514,9 +514,9 @@ public class SpectroDeviceDataController {
         motorSteps = spectroDeviceObject.stripControl.steps;
         spectroDeviceObject.stripControl.steps = sortBasedOnIndex(motorSteps);
 
-        if (SCTestAnalysis.getInstance().jsonFileInterface!=null){
-            SCTestAnalysis.getInstance().jsonFileInterface.onSuccessForConfigureJson();
-        }
+       // if (SCTestAnalysis.getInstance().jsonFileInterface!=null){
+        //    SCTestAnalysis.getInstance().jsonFileInterface.onSuccessForConfigureJson();
+       // }
     }
     public ArrayList<Steps> sortBasedOnIndex(ArrayList<Steps> urineResults) {
         Collections.sort(urineResults, new Comparator<Steps>() {
