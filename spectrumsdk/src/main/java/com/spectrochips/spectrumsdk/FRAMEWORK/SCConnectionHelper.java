@@ -88,8 +88,11 @@ public class SCConnectionHelper {
                     // mBluetoothAdapter.stopLeScan(mLeScanCallback);
                 }
             }, 10000L);
-            this.mScanning = true;
-            this.mBluetoothAdapter.startLeScan(this.mLeScanCallback);
+            
+             if(!mBluetoothAdapter.isDiscovering()){
+               this.mScanning = true;
+               this.mBluetoothAdapter.startLeScan(this.mLeScanCallback);
+           }
         } else {
             this.mScanning = false;
             this.mBluetoothAdapter.stopLeScan(this.mLeScanCallback);
