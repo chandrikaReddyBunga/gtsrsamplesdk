@@ -90,6 +90,12 @@ public class UartService extends Service {
                 intentAction = ACTION_GATT_DISCONNECTED;
                 mConnectionState = STATE_DISCONNECTED;
                 Log.i(TAG, "Disconnected from GATT server.");
+                SCConnectionHelper.getInstance().isConnected = false;
+                if ( SCConnectionHelper.getInstance().scanDeviceInterface == null) {
+                } else {
+                    Log.e("connect","call"+mBluetoothGatt.getServices());
+                    SCConnectionHelper.getInstance().scanDeviceInterface.onFailureForConnection("Device DisConnected");
+                }
                 broadcastUpdate(intentAction);
 
             }
