@@ -72,11 +72,12 @@ public class UartService extends Service {
     private volatile boolean mBusy = false; // Write/read pending response
 
 
+    String intentAction;
 
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            String intentAction;
+          //  String intentAction;
 
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 intentAction = ACTION_GATT_CONNECTED;
@@ -95,7 +96,7 @@ public class UartService extends Service {
 
             notiCount = 0;
         }
-        @Override
+       @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             Log.e("onservice","call"+status);
             List<BluetoothGattService> ser=mBluetoothGatt.getServices();
@@ -104,34 +105,36 @@ public class UartService extends Service {
                 if(service.getUuid().equals(RX_SERVICE_UUID)){
                     List<BluetoothGattCharacteristic> charectersticArray =service.getCharacteristics();
                     for(int j=0;j<charectersticArray.size();j++){
-                        BluetoothGattCharacteristic    characteristic = charectersticArray.get(j);
+                      BluetoothGattCharacteristic    characteristic = charectersticArray.get(j);
                         if(characteristic.getUuid().equals(TX_CHAR_UUID)){
                             Log.e("Called Matched","Charecterstic");
                             wCharacterstic=characteristic;
-                            mBluetoothGatt.setCharacteristicNotification(characteristic,true);
+                        mBluetoothGatt.setCharacteristicNotification(characteristic,true);
+                            intentAction = ACTION_GATT_CONNECTED;
+                            mConnectionState = STATE_CONNECTED;
+                            broadcastUpdate(intentAction);
+                            SCConnectionHelper.getInstance().isConnected = true;
+                            if ( SCConnectionHelper.getInstance().scanDeviceInterface == null) {
+                            } else {
+                                Log.e("connect","call"+mBluetoothGatt.getServices());
+                                SCConnectionHelper.getInstance().scanDeviceInterface.onSuccessForConnection("Device Connected");
+                            }
                         }
                     }
                 }
                 Log.e("chara","call"+ser.get(i).getCharacteristics().get(0).getUuid());
                 Log.e("uuid","call"+ser.get(i).getUuid());
-                // broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
+               // broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
             }
             Log.e("enable","call"+mBluetoothGatt.getServices());
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.w(TAG, "mBluetoothGatt = " + mBluetoothGatt);
+            	Log.w(TAG, "mBluetoothGatt = " + mBluetoothGatt);
                 // startActivity(new Intent(getApplicationContext(), SCFilesViewController.class));
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
             } else {
                 Log.w(TAG, "onServicesDiscoveredreceived: " + status);
             }
-            SCConnectionHelper.getInstance().isConnected = true;
-            if ( SCConnectionHelper.getInstance().scanDeviceInterface == null) {
-                //Fire proper event. bitmapList or error message will be sent to
-                //class which set scanDeviceInterface.
-            } else {
-                Log.e("aaa","call"+mBluetoothGatt.getServices());
-                SCConnectionHelper.getInstance().scanDeviceInterface.onSuccessForConnection("Device Connected");
-            }
+
         }
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt,
