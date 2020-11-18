@@ -48,7 +48,7 @@ public class SpectroDeviceDataController {
     }
 
     public void setupTestParameters(final String fileNmae, final String category) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CUPCAKE) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.CUPCAKE) {
             new AsyncTask<String, String, String>() {
                 @Override
                 protected String doInBackground(String... params) {
@@ -128,9 +128,21 @@ public class SpectroDeviceDataController {
             Log.e("setupTestParameters", "calll");
             if (spectroDeviceObject != null) {
                 updateMotorSteps();
+                updateRCIndexes();
             }
         }
 
+    }
+    public SpectorDeviceDataStruct getObjectFromFile(JSONObject obj){
+        Gson gson = new Gson();
+        SpectorDeviceDataStruct webSiteDescriptionObject = gson.fromJson(obj.toString(), SpectorDeviceDataStruct.class);
+        spectroDeviceObject = webSiteDescriptionObject;
+        if (spectroDeviceObject != null) {
+            updateMotorSteps();
+            updateRCIndexes();
+            return spectroDeviceObject;
+        }
+        return null;
     }
     public void loadJsonFromUrl(String fileName) {
         try {
@@ -141,13 +153,14 @@ public class SpectroDeviceDataController {
                 Log.e("stepsdata","calling"+webSiteDescriptionObject.getRCTable().get(i).getLimetLineRanges().size());
             }
             spectroDeviceObject = webSiteDescriptionObject;
-            Log.e("chanduuuuuuu", "calll"+webSiteDescriptionObject.getRCTable().size());
-            Log.e("chanduuuuuuu", "calll"+webSiteDescriptionObject.getRCTable().get(0).getLimetLineRanges().size());
+            Log.e("rctable", "calll"+webSiteDescriptionObject.getRCTable().size());
+            Log.e("limitline", "calll"+webSiteDescriptionObject.getRCTable().get(0).getLimetLineRanges().size());
 
             if (spectroDeviceObject != null) {
-                Log.e("setupTestParameters", "calll"+obj.getJSONArray("RCTable").get(0).toString());
+                Log.e("setupTestParameters", "calll"+obj.getJSONObject("imageSensor").getJSONArray("ROI").toString());
 
                 updateMotorSteps();
+                updateRCIndexes();
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -203,7 +216,9 @@ public class SpectroDeviceDataController {
 
         } catch (JSONException e) {
             e.printStackTrace();
-          
+            /*if (SCTestAnalysis.getInstance().jsonFileInterface != null) {
+                SCTestAnalysis.getInstance().jsonFileInterface.onFailureForConfigureJson("failed");
+            }*/
         }
     }
 
@@ -508,13 +523,25 @@ public class SpectroDeviceDataController {
         }
     }
 
-     public void updateMotorSteps() {
+    public void updateMotorSteps() {
         motorSteps = spectroDeviceObject.stripControl.steps;
         spectroDeviceObject.stripControl.steps = sortBasedOnIndex(motorSteps);
-
-       // if (SCTestAnalysis.getInstance().jsonFileInterface!=null){
-        //    SCTestAnalysis.getInstance().jsonFileInterface.onSuccessForConfigureJson();
-       // }
+     /*   if (SCTestAnalysis.getInstance().jsonFileInterface!=null){
+            SCTestAnalysis.getInstance().jsonFileInterface.onSuccessForConfigureJson();
+        }*/
+    }
+    public void updateRCIndexes() {
+      ArrayList<RCTableData>  motorSteps = spectroDeviceObject.getRCTable();
+        spectroDeviceObject.setRCTable(sortRCIndex(motorSteps));
+    }
+    public ArrayList<RCTableData> sortRCIndex(ArrayList<RCTableData> urineResults) {
+        Collections.sort(urineResults, new Comparator<RCTableData>() {
+            @Override
+            public int compare(RCTableData s1, RCTableData s2) {
+                return Integer.valueOf(s1.getStripIndex()).compareTo(Integer.valueOf(s2.getStripIndex()));
+            }
+        });
+        return urineResults;
     }
     public ArrayList<Steps> sortBasedOnIndex(ArrayList<Steps> urineResults) {
         Collections.sort(urineResults, new Comparator<Steps>() {
@@ -525,7 +552,6 @@ public class SpectroDeviceDataController {
         });
         return urineResults;
     }
-  
     public Steps calculateTheRealDistanceStpesAndDirectionForTestItem(int position) {
         Steps tempObjMotorStep = motorSteps.get(position);
         if (position == 0) {  // Handle the First object by adding required values.
@@ -630,5 +656,7 @@ public class SpectroDeviceDataController {
     }
 
 }
+
+
 
 
