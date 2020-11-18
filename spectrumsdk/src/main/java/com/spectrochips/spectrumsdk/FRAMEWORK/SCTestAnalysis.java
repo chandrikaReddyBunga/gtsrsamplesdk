@@ -59,7 +59,8 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
 /**
  * Created by ADMIN on 14-05-2019.
  */
-public class SCTestAnalysis extends Activity {
+
+  public class SCTestAnalysis extends Activity {
     private static SCTestAnalysis ourInstance;
     //public Context context;
     public ArrayList<Steps> motorSteps;
@@ -179,8 +180,20 @@ public class SCTestAnalysis extends Activity {
 
     public void activatenotifications(JsonFileInterface jsonFileInterface1) {
         this.jsonFileInterface = jsonFileInterface1;
+        if (jsonFileInterface != null) {
+            jsonFileInterface=null;
+        }
+        jsonFileInterface=jsonFileInterface1;
     }
-
+   
+    public void setDeviceSettings(JSONObject object){
+        SpectorDeviceDataStruct obj=SpectroDeviceDataController.getInstance().getObjectFromFile(object);
+        if(obj!=null) {
+            Log.e("localspectroobject","call"+obj.getStripControl().getDistancePerStepInMM());
+            spectroDeviceObject =obj;
+            motorSteps = spectroDeviceObject.getStripControl().getSteps();
+        }
+    }
     public void getDeviceSettings(String testName, String category, String date) {
        // this.jsonFileInterface = jsonFileInterface1;
         SpectroDeviceDataController.getInstance().loadJsonFromUrl(testName);
@@ -238,14 +251,16 @@ public class SCTestAnalysis extends Activity {
     private void loadPixelArray() {
         pixelXAxis = new ArrayList<>();
         pixelXAxis.clear();
-        int roiArray[] = spectroDeviceObject.getImageSensor().getROI();
-        int pixelCount = roiArray[1];
-        Log.e("pixelcount", "call" + pixelCount);
+        if( spectroDeviceObject.getImageSensor().getROI()!=null) {
+            int roiArray[] = spectroDeviceObject.getImageSensor().getROI();
+            int pixelCount = roiArray[1];
+            Log.e("pixelcount", "call" + pixelCount);
 
-        for (int i = 1; i <= pixelCount; i++) {
-            pixelXAxis.add(Float.valueOf(i));
+            for (int i = 1; i <= pixelCount; i++) {
+                pixelXAxis.add(Float.valueOf(i));
+            }
+            Log.e("pixelcountarray", "call" + pixelXAxis.toString());
         }
-        Log.e("pixelcountarray", "call" + pixelXAxis.toString());
 
     }
 
@@ -494,78 +509,6 @@ public class SCTestAnalysis extends Activity {
             intensityDataRecieved(receivedDataString, request);
             receivedDataString = "";
         }
-
-       /* try {
-            outputStream.write(response.getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        receivedDataString = receivedDataString + response;//rawBuffer2Hex(data);
-
-        // 5e45525223 - ^ERR#
-        if (receivedDataString.startsWith("5e45525223")) {
-            receivedDataString = "";
-            socketresponseData = outputStream.toByteArray();
-            dataRecieved(outputStream.toString(), request);
-            outputStream.reset();
-            socketresponseData = null;
-            Log.e("^ERR# Data Recieved", "call");
-        }
-        //244f4b23 - $OK#
-        if (receivedDataString.startsWith("244f4b23") || receivedDataString.startsWith("244f4b21") || receivedDataString.startsWith("5e4f4b23")) {
-            receivedDataString = "";
-            socketresponseData = outputStream.toByteArray();
-            dataRecieved(outputStream.toString(), request);
-            outputStream.reset();
-            socketresponseData = null;
-            Log.e("$OK# Data Recieved", "call");
-
-        }
-        if (receivedDataString.startsWith("2445525223")) {
-            receivedDataString = "";
-            socketresponseData = outputStream.toByteArray();
-            dataRecieved(outputStream.toString(), request);
-            outputStream.reset();
-            socketresponseData = null;
-        }
-
-        // 2423 - $# - invalid data
-        if (receivedDataString.startsWith("2423")) {
-            receivedDataString = "";
-            outputStream.reset();
-            socketresponseData = null;
-            //swal("Error", "Cofiguration error!", "error");
-        }
-        // Position Sensor success response  ^POS#
-        if (receivedDataString.startsWith("5e504f5323") || receivedDataString.startsWith("24504f5323")) {
-            Log.e("poscall", "call" + receivedDataString);
-            receivedDataString = "";
-            socketresponseData = outputStream.toByteArray();
-            dataRecieved(outputStream.toString(), request);
-            outputStream.reset();
-            socketresponseData = null;
-        }
-        if (receivedDataString.startsWith("5e53545023") || (receivedDataString.startsWith("2453545023"))) {
-            receivedDataString = "";
-            socketresponseData = outputStream.toByteArray();
-            dataRecieved(outputStream.toString(), request);
-            outputStream.reset();
-            socketresponseData = null;
-        }
-
-        // Log.e("Intesnisty", "call" + outputStream.toByteArray().length);
-        //notify graph processing only when we got complete data 5e3235363023
-        if (receivedDataString.startsWith("5e") && receivedDataString.endsWith("5e454f4623")) {
-            if (request.equals(INTESITY_VALUES_TAG)) {
-                receivedDataString = "";
-                socketresponseData = outputStream.toByteArray();
-                intensityDataRecieved(outputStream.toString(), request);
-                outputStream.reset();
-                socketresponseData = null;
-                Log.e("Intesnisty received", "Intesnisty Data Recieved");
-            }
-
-        }*/
     }
 
     //intenisityDataRecieved
