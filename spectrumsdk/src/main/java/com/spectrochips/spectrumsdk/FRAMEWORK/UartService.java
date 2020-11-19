@@ -300,6 +300,8 @@ public class UartService extends Service {
         }
         mBluetoothGatt.disconnect();
         mBluetoothGatt.close();
+        mBluetoothGatt = null;
+        Log.v("disconnectmethod", "mBluetoothGatt closed");
     }
     public void close() {
         if (SCConnectionHelper.getInstance().mBluetoothAdapter == null || mBluetoothGatt == null) {
