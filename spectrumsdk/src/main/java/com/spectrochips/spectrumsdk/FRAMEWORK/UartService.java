@@ -85,12 +85,10 @@ public class UartService extends Service {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 intentAction = ACTION_GATT_CONNECTED;
                 mConnectionState = STATE_CONNECTED;
-                if(mBluetoothGatt.discoverServices()){
-                    Log.e(TAG, "service discovered.");
+                Log.e(TAG, "service discovered.");
                     Log.e(TAG, "Connected to GATT server.");
                     Log.e(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
                     broadcastUpdate(intentAction);
-                }
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
                 mConnectionState = STATE_DISCONNECTED;
