@@ -29,10 +29,11 @@ import java.util.UUID;
 
 
 public class UartService extends Service {
+    Context context;
     private final static String TAG = UartService.class.getSimpleName();
 
     private BluetoothManager mBluetoothManager;
-    private BluetoothAdapter mBluetoothAdapter;
+   // private BluetoothAdapter mBluetoothAdapter;
     private String mBluetoothDeviceAddress;
     private BluetoothGatt mBluetoothGatt;
     private int mConnectionState = STATE_DISCONNECTED;
@@ -71,21 +72,25 @@ public class UartService extends Service {
     BluetoothGattCharacteristic wCharacterstic;
     private volatile boolean mBusy = false; // Write/read pending response
 
-
     String intentAction;
+
+    public void fillContext(Context context1) {
+         context = context1;
+    }
 
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
           //  String intentAction;
-
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 intentAction = ACTION_GATT_CONNECTED;
                 mConnectionState = STATE_CONNECTED;
-                broadcastUpdate(intentAction);
-                Log.i(TAG, "Connected to GATT server.");
-                Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
-
+                if(mBluetoothGatt.discoverServices()){
+                    Log.e(TAG, "service discovered.");
+                    Log.e(TAG, "Connected to GATT server.");
+                    Log.e(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+                    broadcastUpdate(intentAction);
+                }
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
                 mConnectionState = STATE_DISCONNECTED;
@@ -97,12 +102,10 @@ public class UartService extends Service {
                     SCConnectionHelper.getInstance().scanDeviceInterface.onFailureForConnection("Device DisConnected");
                 }
                 broadcastUpdate(intentAction);
-
             }
-
             notiCount = 0;
         }
-       @Override
+        @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             Log.e("onservice","call"+status);
             List<BluetoothGattService> ser=mBluetoothGatt.getServices();
@@ -147,41 +150,41 @@ public class UartService extends Service {
                                          BluetoothGattCharacteristic characteristic,
                                          int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                //  broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+              //  broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
                 Log.w(TAG, "onServicesDiscovered received: " + status);
             }
         }
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
-            byte[] data = characteristic.getValue();
-            Log.e(TAG, "Received TX: "  + notiCount + " - " + characteristic.getStringValue(0) );
-            notiCount++;
+        	byte[] data = characteristic.getValue();
+        	Log.e(TAG, "Received TX: "  + notiCount + " - " + characteristic.getStringValue(0) );
+        	notiCount++;
             if(SCTestAnalysis.getInstance().testDataInterface !=null){
                 SCTestAnalysis.getInstance(). testDataInterface.gettingData(characteristic.getValue());
             }
-            //  broadcastUpdate(ACTION_DATA_AVAILABLE_DATA, characteristic);
+        //  broadcastUpdate(ACTION_DATA_AVAILABLE_DATA, characteristic);
         }
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt,
                                           BluetoothGattCharacteristic characteristic, int status) {
             mBusy = false;
         }
-        @Override
+       @Override
         public void onDescriptorRead(BluetoothGatt gatt,
                                      BluetoothGattDescriptor descriptor, int status) {
-            mBusy = false;
+           mBusy = false;
         }
         @Override
         public void onDescriptorWrite(BluetoothGatt gatt,
                                       BluetoothGattDescriptor descriptor, int status) {
             Log.i(TAG, "onDescriptorWrite: " + descriptor.getUuid().toString());
-            mBusy = false;
-        }
-    };
+        mBusy = false;
+    }
+};
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
     private void broadcastUpdate(final String action,
@@ -192,13 +195,13 @@ public class UartService extends Service {
         // http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
         if (TX_CHAR_UUID.equals(characteristic.getUuid())) {
             try {
-                //  String s= new String(characteristic.getValue(), "UTF-8");
-                // Log.e("utfstring","call"+s);
+              //  String s= new String(characteristic.getValue(), "UTF-8");
+               // Log.e("utfstring","call"+s);
                 final byte[] txValue = characteristic.getValue();
                 //Log.e("ReceivedBytes", "call" + txValue.length);
                 String text = new String(characteristic.getValue(),"UTF-8");
                 Log.e("ReceivedBytes", "call" + text);
-                // SCTestAnalysis.getInstance(). socketDidReceiveMessage(text, SCTestAnalysis.getInstance().requestCommand);
+               // SCTestAnalysis.getInstance(). socketDidReceiveMessage(text, SCTestAnalysis.getInstance().requestCommand);
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
@@ -206,11 +209,11 @@ public class UartService extends Service {
             /*if(SCTestAnalysis.getInstance().testDataInterface !=null){
                 SCTestAnalysis.getInstance(). testDataInterface.gettingData(characteristic.getValue());
             }*/
-            // intent.putExtra(EXTRA_DATA, characteristic.getValue());
+           // intent.putExtra(EXTRA_DATA, characteristic.getValue());
         } else {
 
         }
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
     public class LocalBinder extends Binder {
@@ -240,15 +243,15 @@ public class UartService extends Service {
         // For API level 18 and above, get a reference to BluetoothAdapter through
         // BluetoothManager.
         if (mBluetoothManager == null) {
-            mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+            mBluetoothManager = (BluetoothManager)getSystemService(Context.BLUETOOTH_SERVICE);
             if (mBluetoothManager == null) {
                 Log.e(TAG, "Unable to initialize BluetoothManager.");
                 return false;
             }
         }
 
-        mBluetoothAdapter = mBluetoothManager.getAdapter();
-        if (mBluetoothAdapter == null) {
+      SCConnectionHelper.getInstance().mBluetoothAdapter = mBluetoothManager.getAdapter();
+        if (SCConnectionHelper.getInstance().mBluetoothAdapter == null) {
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
             return false;
         }
@@ -256,13 +259,13 @@ public class UartService extends Service {
         return true;
     }
 
-    public boolean connect(final String address) {
-        if (mBluetoothAdapter == null || address == null) {
+    public boolean connect(final BluetoothDevice device) {
+        if (SCConnectionHelper.getInstance().mBluetoothAdapter == null || device == null) {
             Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
             return false;
         }
         // Previously connected device.  Try to reconnect.
-        if (mBluetoothDeviceAddress != null && address.equals(mBluetoothDeviceAddress)
+        if (mBluetoothDeviceAddress != null && device.getAddress().equals(mBluetoothDeviceAddress)
                 && mBluetoothGatt != null) {
             Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.");
             if (mBluetoothGatt.connect()) {
@@ -272,29 +275,34 @@ public class UartService extends Service {
                 return false;
             }
         }
-        final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+        /*final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(bl);
         if (device == null) {
             Log.w(TAG, "Device not found.  Unable to connect.");
             return false;
-        }
+        }*/
         // We want to directly connect to the device, so we are setting the autoConnect
         // parameter to false.
-        mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
-        Log.d(TAG, "Trying to create a new connection.");
-        mBluetoothDeviceAddress = address;
+        if (Build.VERSION.SDK_INT < 23) {
+            Log.d(TAG, "Trying to create a new connection.");
+            mBluetoothGatt = device.connectGatt(context, false,mGattCallback);
+        }else{
+            Log.d(TAG, "Trying to higher create a new connection.");
+            mBluetoothGatt = device.connectGatt(context, false, mGattCallback,BluetoothDevice.TRANSPORT_LE);
+        }
+        mBluetoothDeviceAddress = device.getAddress();
         mConnectionState = STATE_CONNECTING;
         return true;
     }
     public void disconnect() {
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+        if (SCConnectionHelper.getInstance().mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
         mBluetoothGatt.disconnect();
-        // mBluetoothGatt.close();
+        mBluetoothGatt.close();
     }
     public void close() {
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+        if (SCConnectionHelper.getInstance().mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
@@ -306,7 +314,7 @@ public class UartService extends Service {
 
 
     public void readCharacteristic(BluetoothGattCharacteristic characteristic) {
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+        if (SCConnectionHelper.getInstance().mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
@@ -315,7 +323,7 @@ public class UartService extends Service {
 
     public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic,
                                               boolean enabled) {
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+        if (SCConnectionHelper.getInstance().mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
@@ -331,11 +339,11 @@ public class UartService extends Service {
             Log.e("chara","call"+ser.get(i).getCharacteristics());
         }
         Log.e("enable","call"+mBluetoothGatt.getServices());
-        if (mBluetoothGatt == null) {
-            showMessage("mBluetoothGatt null" + mBluetoothGatt);
-            broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
-            return;
-        }
+    	if (mBluetoothGatt == null) {
+    		showMessage("mBluetoothGatt null" + mBluetoothGatt);
+    		broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
+    		return;
+    	}
 
 
         BluetoothGattService RxService = mBluetoothGatt.getService(RX_SERVICE_UUID);
@@ -408,7 +416,7 @@ public class UartService extends Service {
     }
 
     public void writeRXCharacteristic(String value) {
-        if (wCharacterstic == null) {
+            if (wCharacterstic == null) {
             showMessage("sample Rx service not found!");
             broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
             return;
