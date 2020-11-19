@@ -25,7 +25,9 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.UUID;
-
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 
 
 public class UartService extends Service {
@@ -87,7 +89,13 @@ public class UartService extends Service {
                 mConnectionState = STATE_CONNECTED;
                 Log.e(TAG, "service discovered.");
                     Log.e(TAG, "Connected to GATT server.");
-                    Log.e(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+                  new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean ans = mBluetoothGatt.discoverServices();
+                        Log.d(TAG, "Discover Services started: " + ans);
+                    }
+                });
                     broadcastUpdate(intentAction);
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
