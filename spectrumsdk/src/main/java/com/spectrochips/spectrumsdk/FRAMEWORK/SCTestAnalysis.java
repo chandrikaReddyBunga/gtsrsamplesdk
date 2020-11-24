@@ -129,11 +129,11 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
             }
 
             @Override
-            public void testComplete(ArrayList<TestFactors> results, String msg) {
+            public void testComplete(ArrayList<TestFactors> results, String msg, ArrayList<IntensityChart> intensityChartsArray) {
                 testResults = results;
                 Log.e("testCompleteReceived", "call" + testResults.size());
                 if (testAnalysisListener != null) {
-                    testAnalysisListener.onSuccessForTestComplete(testResults, "Test Complete");
+                    testAnalysisListener.onSuccessForTestComplete(testResults, "Test Complete",intensityChartsArray);
                 }
             }
             /*@Override
@@ -151,8 +151,9 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
 
     public interface TestDataInterface {
         void gettingData(byte[] data);
+        void testComplete(ArrayList<TestFactors> results, String msg,ArrayList<IntensityChart> intensityChartsArray);
 
-        void testComplete(ArrayList<TestFactors> results, String msg);
+      //  void testComplete(ArrayList<TestFactors> results, String msg);
         //void getCommandAndResponse(String msg);
     }
 
@@ -1172,11 +1173,8 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
 
         }
         if (testDataInterface != null) {
-            testDataInterface.testComplete(testItems, "test");
+            testDataInterface.testComplete(testItems, "test",intensityChartsArray);
         }
-        /*showMessage("Testingcompleted.");
-        testAnalysisListener.onSuccessForTestComplete(testItems, "Testing completed.");
-*/
     }
 
 
@@ -1301,7 +1299,8 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
     }
 
     public interface TeststaResultInterface {
-        void onSuccessForTestComplete(ArrayList<TestFactors> results, String msg);
+       // void onSuccessForTestComplete(ArrayList<TestFactors> results, String msg, ArrayList<IntensityChart> intensityChartsArray);
+        void onSuccessForTestComplete(ArrayList<TestFactors> results, String msg,ArrayList<IntensityChart> intensityChartsArray);
 
         void getRequestAndResponse(String data);
 
