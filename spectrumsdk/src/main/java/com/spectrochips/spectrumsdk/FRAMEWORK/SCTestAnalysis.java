@@ -899,8 +899,7 @@ public class SCTestAnalysis {
             ArrayList<Float> swSubstratedArray = getStandardwhiteSubstrateArray();
             for (IntensityChart objIntensitychartObject : intensityChartsArray) {
                 if (!objIntensitychartObject.getTestName().equals(standardWhiteTitle) && !objIntensitychartObject.getTestName().equals(darkSpectrumTitle)) {
-                    Log.e("getyAxisArray", "call" + objIntensitychartObject.getyAxisArray().toString());
-                    Log.e("getTestName", "call" + objIntensitychartObject.getTestName().toString());
+                 
                     ArrayList<Float> originalArray = getOriginalDivReference(objIntensitychartObject.getSubstratedArray(), swSubstratedArray);
                     double interpolationValue = getClosestValue(objIntensitychartObject.getWavelengthArray(), originalArray, objIntensitychartObject.getCriticalWavelength());
                     double correctValue=correctRValue(interpolationValue,objIntensitychartObject.getTestName());
