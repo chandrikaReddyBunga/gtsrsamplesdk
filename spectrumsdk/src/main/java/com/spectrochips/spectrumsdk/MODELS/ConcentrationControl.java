@@ -11,7 +11,24 @@ public class ConcentrationControl {
     String concentration;
     String units;
     String referenceRange;
+    String rValue;
+    String cValue;
 
+    public String getcValue() {
+        return cValue;
+    }
+
+    public void setcValue(String cValue) {
+        this.cValue = cValue;
+    }
+
+    public String getrValue() {
+        return rValue;
+    }
+
+    public void setrValue(String rValue) {
+        this.rValue = rValue;
+    }
 
     public String getReferenceRange() {
         return referenceRange;
@@ -54,3 +71,4 @@ public class ConcentrationControl {
         this.units = units;
     }
 }
+
