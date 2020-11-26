@@ -12,6 +12,24 @@ public class TestFactors {
     String referenceRange;
     boolean flag;
     String result;
+    String rValue;
+    String cValue;
+
+    public String getrValue() {
+        return rValue;
+    }
+
+    public void setrValue(String rValue) {
+        this.rValue = rValue;
+    }
+
+    public String getcValue() {
+        return cValue;
+    }
+
+    public void setcValue(String cValue) {
+        this.cValue = cValue;
+    }
 
     public String getSNo() {
         return SNo;
