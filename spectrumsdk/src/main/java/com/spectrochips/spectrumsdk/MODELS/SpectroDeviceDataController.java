@@ -64,7 +64,8 @@ public class SpectroDeviceDataController {
                             if (spectroDeviceObject != null) {
                                 //  self.motorSteps = spectroDevice.stripControl.steps
                                 updateMotorSteps();
-                             ///   statusCallBack(true, self.spectroDeviceObject)
+                                updateRCIndexes();
+                                ///   statusCallBack(true, self.spectroDeviceObject)
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -120,8 +121,9 @@ public class SpectroDeviceDataController {
         uc.disconnect();
         return jsonString.toString();
     }
+
     public void loadJsonFromLocalFile(JSONObject fileName) {
-        if(fileName != null) {
+        if (fileName != null) {
             Gson gson = new Gson();
             SpectorDeviceDataStruct webSiteDescriptionObject = gson.fromJson(fileName.toString(), SpectorDeviceDataStruct.class);
             spectroDeviceObject = webSiteDescriptionObject;
@@ -133,7 +135,8 @@ public class SpectroDeviceDataController {
         }
 
     }
-    public SpectorDeviceDataStruct getObjectFromFile(JSONObject obj){
+
+    public SpectorDeviceDataStruct getObjectFromFile(JSONObject obj) {
         Gson gson = new Gson();
         SpectorDeviceDataStruct webSiteDescriptionObject = gson.fromJson(obj.toString(), SpectorDeviceDataStruct.class);
         spectroDeviceObject = webSiteDescriptionObject;
@@ -144,20 +147,21 @@ public class SpectroDeviceDataController {
         }
         return null;
     }
+
     public void loadJsonFromUrl(String fileName) {
         try {
             JSONObject obj = new JSONObject(loadJSONFromAsset(fileName));
             Gson gson = new Gson();
             SpectorDeviceDataStruct webSiteDescriptionObject = gson.fromJson(obj.toString(), SpectorDeviceDataStruct.class);
-            for(int i=0;i<webSiteDescriptionObject.getRCTable().size();i++){
-                Log.e("stepsdata","calling"+webSiteDescriptionObject.getRCTable().get(i).getLimetLineRanges().size());
+            for (int i = 0; i < webSiteDescriptionObject.getRCTable().size(); i++) {
+                Log.e("stepsdata", "calling" + webSiteDescriptionObject.getRCTable().get(i).getLimetLineRanges().size());
             }
             spectroDeviceObject = webSiteDescriptionObject;
-            Log.e("rctable", "calll"+webSiteDescriptionObject.getRCTable().size());
-            Log.e("limitline", "calll"+webSiteDescriptionObject.getRCTable().get(0).getLimetLineRanges().size());
+            Log.e("rctable", "calll" + webSiteDescriptionObject.getRCTable().size());
+            Log.e("limitline", "calll" + webSiteDescriptionObject.getRCTable().get(0).getLimetLineRanges().size());
 
             if (spectroDeviceObject != null) {
-                Log.e("setupTestParameters", "calll"+obj.getJSONObject("imageSensor").getJSONArray("ROI").toString());
+                Log.e("setupTestParameters", "calll" + obj.getJSONObject("imageSensor").getJSONArray("ROI").toString());
 
                 updateMotorSteps();
                 updateRCIndexes();
@@ -212,6 +216,7 @@ public class SpectroDeviceDataController {
             processRcTableData(objrctable);
 
             updateMotorSteps();
+            updateRCIndexes();
 
 
         } catch (JSONException e) {
@@ -530,10 +535,12 @@ public class SpectroDeviceDataController {
             SCTestAnalysis.getInstance().jsonFileInterface.onSuccessForConfigureJson();
         }*/
     }
+
     public void updateRCIndexes() {
-      ArrayList<RCTableData>  motorSteps = spectroDeviceObject.getRCTable();
+        ArrayList<RCTableData> motorSteps = spectroDeviceObject.getRCTable();
         spectroDeviceObject.setRCTable(sortRCIndex(motorSteps));
     }
+
     public ArrayList<RCTableData> sortRCIndex(ArrayList<RCTableData> urineResults) {
         Collections.sort(urineResults, new Comparator<RCTableData>() {
             @Override
@@ -543,6 +550,7 @@ public class SpectroDeviceDataController {
         });
         return urineResults;
     }
+
     public ArrayList<Steps> sortBasedOnIndex(ArrayList<Steps> urineResults) {
         Collections.sort(urineResults, new Comparator<Steps>() {
             @Override
@@ -552,6 +560,7 @@ public class SpectroDeviceDataController {
         });
         return urineResults;
     }
+
     public Steps calculateTheRealDistanceStpesAndDirectionForTestItem(int position) {
         Steps tempObjMotorStep = motorSteps.get(position);
         if (position == 0) {  // Handle the First object by adding required values.
@@ -631,6 +640,7 @@ public class SpectroDeviceDataController {
 
         }
     }
+
     private double getDistanceForStep() {
         return spectroDeviceObject.getStripMeasurment().getStepDistanceInMM();
     }
@@ -656,7 +666,4 @@ public class SpectroDeviceDataController {
     }
 
 }
-
-
-
 
