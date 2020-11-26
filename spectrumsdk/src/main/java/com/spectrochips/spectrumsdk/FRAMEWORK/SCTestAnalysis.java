@@ -1,6 +1,5 @@
 package com.spectrochips.spectrumsdk.FRAMEWORK;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
@@ -56,26 +55,31 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.MOVE_
 import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.MOVE_STRIP_COUNTER_CLOCKWISE_TAG;
 import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TURN_OFF;
 import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TURN_ON;
+
 /**
  * Created by ADMIN on 14-05-2019.
  */
-
-  public class SCTestAnalysis extends Activity {
+public class SCTestAnalysis {
     private static SCTestAnalysis ourInstance;
     //public Context context;
     public ArrayList<Steps> motorSteps;
     private String darkSpectrumTitle = "Dark Spectrum";
     private String standardWhiteTitle = "Standard White (Reference)";
     public SpectorDeviceDataStruct spectroDeviceObject;
-    private ArrayList<IntensityChart> intensityChartsArray = new ArrayList<>();
+    public ArrayList<IntensityChart> intensityChartsArray = new ArrayList<>();
     private ArrayList<Float> pixelXAxis = new ArrayList<>();
     private ArrayList<Float> wavelengthXAxis = new ArrayList<>();
     private ArrayList<ReflectanceChart> reflectenceChartsArray = new ArrayList<>();
     private ArrayList<ConcentrationControl> concentrationArray = new ArrayList<>();
     private ArrayList<Float> darkSpectrumIntensityArray = new ArrayList<>();
     private ArrayList<Float> standardWhiteIntensityArray = new ArrayList<>();
+    private ArrayList<String> cValArray = new ArrayList<>();
+    private ArrayList<String> rArray = new ArrayList<>();
+
     private int stripNumber = 0;
     private boolean isForDarkSpectrum = false;
+    private boolean isCalibration = false;
+
     private boolean isForSync = false;
     private int commandNumber = 0;
     public String requestCommand = "";
@@ -133,29 +137,12 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
                 testResults = results;
                 Log.e("testCompleteReceived", "call" + testResults.size());
                 if (testAnalysisListener != null) {
-                    testAnalysisListener.onSuccessForTestComplete(testResults, "Test Complete",intensityChartsArray);
+                    testAnalysisListener.onSuccessForTestComplete(testResults, "Test Complete", intensityChartsArray);
                 }
             }
-            /*@Override
-            public void getCommandAndResponse(String msg) {
-
-            }*/
         });
     }
 
-    public TestDataInterface testDataInterface;
-
-    public void syncDeviceData(TestDataInterface testDataInterface1) {
-        this.testDataInterface = testDataInterface1;
-    }
-
-    public interface TestDataInterface {
-        void gettingData(byte[] data);
-        void testComplete(ArrayList<TestFactors> results, String msg,ArrayList<IntensityChart> intensityChartsArray);
-
-      //  void testComplete(ArrayList<TestFactors> results, String msg);
-        //void getCommandAndResponse(String msg);
-    }
 
     public boolean canDo() {
         if (SpectroCareSDK.getInstance().isSDKAccess) {
@@ -182,21 +169,33 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
     public void activatenotifications(JsonFileInterface jsonFileInterface1) {
         this.jsonFileInterface = jsonFileInterface1;
         if (jsonFileInterface != null) {
-            jsonFileInterface=null;
+            jsonFileInterface = null;
         }
-        jsonFileInterface=jsonFileInterface1;
+        jsonFileInterface = jsonFileInterface1;
     }
-   
-    public void setDeviceSettings(JSONObject object){
-        SpectorDeviceDataStruct obj=SpectroDeviceDataController.getInstance().getObjectFromFile(object);
-        if(obj!=null) {
-            Log.e("localspectroobject","call"+obj.getStripControl().getDistancePerStepInMM());
-            spectroDeviceObject =obj;
+
+    /*public void getDeviceSettings(String testName, String category, String date, JsonFileInterface jsonFileInterface1) {
+        this.jsonFileInterface = jsonFileInterface1;
+        SpectroDeviceDataController.getInstance().loadJsonFromUrl(testName);
+        if (SpectroDeviceDataController.getInstance().spectroDeviceObject != null) {
+            spectroDeviceObject = SpectroDeviceDataController.getInstance().spectroDeviceObject;
+            motorSteps = spectroDeviceObject.getStripControl().getSteps();
+            Log.e("loadDefaultSpect", "call" + spectroDeviceObject.getStripControl().getDistanceFromHolderEdgeTo1STStripInMM());
+            Log.e("loadDefaultSpect", "call" + motorSteps.size());
+
+        }
+    }*/
+    public void setDeviceSettings(JSONObject object) {
+        SpectorDeviceDataStruct obj = SpectroDeviceDataController.getInstance().getObjectFromFile(object);
+        if (obj != null) {
+            Log.e("localspectroobject", "call" + obj.getStripControl().getDistancePerStepInMM());
+            spectroDeviceObject = obj;
             motorSteps = spectroDeviceObject.getStripControl().getSteps();
         }
     }
+
     public void getDeviceSettings(String testName, String category, String date) {
-       // this.jsonFileInterface = jsonFileInterface1;
+        // this.jsonFileInterface = jsonFileInterface1;
         SpectroDeviceDataController.getInstance().loadJsonFromUrl(testName);
         if (SpectroDeviceDataController.getInstance().spectroDeviceObject != null) {
             spectroDeviceObject = SpectroDeviceDataController.getInstance().spectroDeviceObject;
@@ -252,7 +251,7 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
     private void loadPixelArray() {
         pixelXAxis = new ArrayList<>();
         pixelXAxis.clear();
-        if( spectroDeviceObject.getImageSensor().getROI()!=null) {
+        if (spectroDeviceObject.getImageSensor().getROI() != null) {
             int roiArray[] = spectroDeviceObject.getImageSensor().getROI();
             int pixelCount = roiArray[1];
             Log.e("pixelcount", "call" + pixelCount);
@@ -358,13 +357,11 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
 
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName componentName, IBinder service) {
-            mService = ((UartService.LocalBinder) service).getService();
-            if (!mService.initialize()) {
-                Log.e("not", "Unable to initialize Bluetooth");
-                //finish();
+            SCTestAnalysis.getInstance().mService = ((UartService.LocalBinder) service).getService();
+            Log.d("ccccc", "onServiceConnected mService= " + SCTestAnalysis.getInstance().mService);
+            if (!SCTestAnalysis.getInstance().mService.initialize()) {
+                Log.e("sssssss", "Unable to initialize Bluetooth");
             }
-
-            //  mService.connect();
         }
 
         public void onServiceDisconnected(ComponentName componentName) {
@@ -377,50 +374,25 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
 
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-
             final Intent mIntent = intent;
             if (action.equals(UartService.ACTION_GATT_CONNECTED)) {
-                // showMessage("Device Connected.");
+                Log.e("showMessage", "call");
+                //showMessage("Device Connected.");
             }
 
             if (action.equals(UartService.ACTION_GATT_DISCONNECTED)) {
                 //showMessage("Device Disconnected.");
             }
             if (action.equals(UartService.ACTION_GATT_SERVICES_DISCOVERED)) {
-                //  mService.enableTXNotification();
                 Log.e("zxzxzxzzx", "call");
-               /* SCConnectionHelper.getInstance().isConnected=true;
-                if (SCConnectionHelper.getInstance().scanDeviceInterface == null) {
+                SCConnectionHelper.getInstance().isConnected = true;
+               /* if (SCConnectionHelper.getInstance().scanDeviceInterface == null) {
                 } else {
                     SCConnectionHelper.getInstance().scanDeviceInterface.onSuccessForConnection("Device Connected");
                 }*/
             }
             if (action.equals(UartService.ACTION_DATA_AVAILABLE_DATA)) {
-               /* final byte[] txValue = intent.getByteArrayExtra(UartService.EXTRA_DATA);
-                String text = decodeUTF8(txValue);
-                Log.e("ReceivedBytes", "call" + text);
-                socketDidReceiveMessage(text, requestCommand);*/
-               /*// try {
-                    if (txValue.length > 0) {
-                        String text = decodeUTF8(txValue);
-                        Log.e("decodeUTF8", "call" + text);
-                        socketDidReceiveMessage(text, requestCommand);
-                        *//*if (text.length() > 0) {
-                            if (text.contains("^2560#")) {
-                                cal_c = 0;
-                                cal_c = txValue.length - 6;
-                            } else if (text.contains("^EOF#") || text.contains("EOF#") || text.contains("OF#") || text.contains("F#")) {
-                                cal_c += (txValue.length- 5);
-                                Log.e("RESPONSE", "Total bytes = " + cal_c);
-                            } else {
-                                cal_c += txValue.length;
-                            }
 
-                        }*//*
-                    }
-               *//* } catch (Exception e) {
-                    Log.e("exception", e.toString());
-                }*/
             }
             if (action.equals(UartService.DEVICE_DOES_NOT_SUPPORT_UART)) {
                 SCConnectionHelper.getInstance().disconnectWithPeripheral();
@@ -515,16 +487,15 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
     //intenisityDataRecieved
     private void intensityDataRecieved(String responseData, String request) {
         Log.e("intensityDataRecieved", "call" + request + responseData.length());
-
         if (processIntensityValues(responseData)) {
             if (!isForDarkSpectrum) {
                 performMotorStepsFunction();
             } else {
                 isForDarkSpectrum = false;
+                // isCalibration=true;
                 syncingInterface.isSyncingCompleted(true);
             }
         } else {
-            Log.e("processIntensityfalse", "calll");
             requestCommand = "";
             new Timer().schedule(new TimerTask() {
                 @Override
@@ -532,15 +503,9 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
                     getIntensity();
                 }
             }, 1000);
-
-           /* new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    getIntensity();
-                }
-            }, 1000 * 1);*/
         }
     }
+
     private void dataRecieved(String responseData, String request) {
         Log.e("dataRecieved", "call" + request + responseData);
         processResponseData(request, responseData);
@@ -594,7 +559,14 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
                         break;
                 }
                 commandNumber = commandNumber + 1;
-            } else {
+            }/* else if(isCalibration){
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        ledControl(true);
+                    }
+                }, 1000);
+            }*/ else {
                 Log.e("abort5", "call");
                 if (isInterrupted) { //for test abort from my side
                     if (abortInterface != null) {
@@ -818,7 +790,20 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
                     syncDone();
                 }
             }
-        } else {
+        } /*else if(isCalibration){
+            standardWhiteIntensityArray = intensityArray;
+            if (getPositionForTilte(standardWhiteTitle) != -1) {
+                int position = getPositionForTilte(standardWhiteTitle);
+                IntensityChart object = intensityChartsArray.get(position);
+                object.setyAxisArray(standardWhiteIntensityArray);
+                intensityChartsArray.set(position, object);
+                Log.e("forwhitespectrum", "call" + object.getyAxisArray().toString());
+                if (syncingInterface != null) {
+                    syncingInterface.isSyncingCompleted(true);
+                    syncDone();
+                }
+            }
+        }*/ else {
             Log.e("otherThandarkArray", "call" + intensityArray.toString());
             setIntensityArrayForTestItem();
             if (stripNumber == motorSteps.size() - 1) {  // Before Eject command , Process the Testing completed command.
@@ -908,7 +893,6 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
     public void showMessage(String msg) {
         Toast.makeText(SpectroCareSDK.getInstance().context, msg, Toast.LENGTH_SHORT).show();
     }
-
     private void processRCConversion() {
         reflectenceChartsArray.clear();
         if (getStandardwhiteSubstrateArray() != null) {
@@ -917,16 +901,17 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
                 if (!objIntensitychartObject.getTestName().equals(standardWhiteTitle) && !objIntensitychartObject.getTestName().equals(darkSpectrumTitle)) {
                     Log.e("getyAxisArray", "call" + objIntensitychartObject.getyAxisArray().toString());
                     Log.e("getTestName", "call" + objIntensitychartObject.getTestName().toString());
-                    // Log.e("aaaasddssdd", "call"+swSubstratedArray.toString());
                     ArrayList<Float> originalArray = getOriginalDivReference(objIntensitychartObject.getSubstratedArray(), swSubstratedArray);
                     double interpolationValue = getClosestValue(objIntensitychartObject.getWavelengthArray(), originalArray, objIntensitychartObject.getCriticalWavelength());
+                    double correctValue=correctRValue(interpolationValue,objIntensitychartObject.getTestName());
+
                     ReflectanceChart objReflectanceChart = new ReflectanceChart();
                     objReflectanceChart.setTestName(objIntensitychartObject.getTestName());
                     objReflectanceChart.setxAxisArray(wavelengthXAxis);
                     objReflectanceChart.setyAxisArray(originalArray);
                     objReflectanceChart.setCriticalWavelength(objIntensitychartObject.getCriticalWavelength());
                     objReflectanceChart.setAutoMode(true);
-                    objReflectanceChart.setInterpolationValue(interpolationValue);
+                    objReflectanceChart.setInterpolationValue(correctValue);
                     reflectenceChartsArray.add(objReflectanceChart);
                 }
             }
@@ -936,15 +921,57 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
         processFinalTestResults();
     }
 
+    private double correctRValue(double rValue, String testName) {
+        double returnRValue = rValue;
+        RCTableData rcTableObject = getRCObjectFortestName(testName);
+        if (rcTableObject != null) {
+            double maxValue=getMax(rcTableObject.getR());
+            double minValue=getMin(rcTableObject.getR());
+            Log.e("minmaxvlaues", "call"+rcTableObject.getTestItem()+maxValue+"min"+minValue);
+            if (returnRValue > maxValue) {
+                returnRValue = maxValue;
+            }else if( returnRValue<minValue ){
+                returnRValue = minValue;
+            }
+        }
+        return returnRValue;
+    }
+    // Method for getting the maximum value
+    public  double getMax(double[] inputArray){
+        double maxValue = inputArray[0];
+        for(int i=1;i < inputArray.length;i++){
+            if(inputArray[i] > maxValue){
+                maxValue = inputArray[i];
+            }
+        }
+        return maxValue;
+    }
+
+    // Method for getting the minimum value
+    public  double getMin(double[] inputArray){
+        double minValue = inputArray[0];
+        for(int i=1;i<inputArray.length;i++){
+            if(inputArray[i] < minValue){
+                minValue = inputArray[i];
+            }
+        }
+        return minValue;
+    }
     private ArrayList<Float> getOriginalDivReference(ArrayList<Float> originalArray, ArrayList<Float> referenceArray) {
         //   Log.e("originalArray", "call" + originalArray.toString());
         Log.e("referenceArray", "call" + referenceArray.toString());
         ArrayList<Float> divisionArray = new ArrayList<>();
         for (int i = 0; i < originalArray.size(); i++) {
-            if (referenceArray.get(i) != 0) {
-                divisionArray.add(originalArray.get(i) / referenceArray.get(i));
-            } else {
+            if (referenceArray.get(i) == 0) {
                 divisionArray.add(0.0f);
+            } else {
+                divisionArray.add(originalArray.get(i) / referenceArray.get(i));
+                /* double value = originalArray.get(i) / referenceArray.get(i);
+               if (value >= 0){
+                    divisionArray.add(originalArray.get(i) / referenceArray.get(i));
+                }else{
+                    divisionArray.add(0.0f);
+                }*/
             }
         }
         Log.e("divisionArray", "call" + divisionArray.toString());
@@ -979,13 +1006,20 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
                     cArray.add((float) d);
                 }
                 double finalC = getClosestValue(rArray, cArray, objReflectance.getInterpolationValue());
+                if (finalC < 0) {
+                    finalC = 0.0;
+                }
                 ConcentrationControl objConcetration = new ConcentrationControl();
                 objConcetration.setSNo(String.valueOf(index));
                 objConcetration.setConcentration(String.valueOf(finalC));
                 objConcetration.setUnits(rcTableObject.getUnit());
                 objConcetration.setTestItem(rcTableObject.getTestItem());
                 objConcetration.setReferenceRange(rcTableObject.getReferenceRange());
+                objConcetration.setrValue(String.valueOf(objReflectance.getInterpolationValue()));
+                objConcetration.setcValue(String.valueOf(objReflectance.getCriticalWavelength()));
+                Log.e("cvaluesarray", "call" + String.valueOf(finalC));
                 concentrationArray.add(objConcetration);
+
                 index += 1;
             }
         }
@@ -1168,13 +1202,15 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
             objTest.setSNo(String.valueOf(sno));
             objTest.setResult(resultText);
             objTest.setValue(testValue);
-
+            objTest.setrValue(object.getrValue());
+            objTest.setcValue(object.getcValue());
             testItems.add(objTest);
 
         }
         if (testDataInterface != null) {
-            testDataInterface.testComplete(testItems, "test",intensityChartsArray);
+            testDataInterface.testComplete(testItems, "test", intensityChartsArray);
         }
+
     }
 
 
@@ -1211,7 +1247,7 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
                 if (objRc.getTestItem().equals(testName)) {
                     if (objRc.getLimetLineRanges().get(0) != null) {
                         LimetLineRanges safeRange = objRc.getLimetLineRanges().get(0);
-                        if (value > safeRange.getCMinValue() && value <= safeRange.getCMaxValue()) {
+                        if (value >= safeRange.getCMinValue() && value <= safeRange.getCMaxValue()) {
                             isOk = true;
                             return isOk;
                         }
@@ -1221,15 +1257,18 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
         }
         return isOk;
     }
-
     public String getResultTextForTestItemwithValue(String testName, double value) {
         if (spectroDeviceObject.getRCTable() != null) {
             for (RCTableData objRc : spectroDeviceObject.getRCTable()) {
                 if (objRc.getTestItem().equals(testName)) {
+
                     for (LimetLineRanges objLimitRange : objRc.getLimetLineRanges()) {
-                        if (value > objLimitRange.getCMinValue() && value <= objLimitRange.getCMaxValue()) {
-                            Log.e("linesymboal", "call" + objLimitRange.getLineSymbol());
-                            return objLimitRange.getLineSymbol();
+                        if (value >= objLimitRange.getCMinValue() && value <= objLimitRange.getCMaxValue()) {
+                            if (objLimitRange.getLineSymbol().trim().equals("-")){
+                                return "Negative";
+                            }else{
+                                return objLimitRange.getLineSymbol();
+                            }
                         }
                     }
                 }
@@ -1285,6 +1324,19 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
         unRegisterReceiver();
     }
 
+    public TestDataInterface testDataInterface;
+
+    public void syncDeviceData(TestDataInterface testDataInterface1) {
+        this.testDataInterface = testDataInterface1;
+    }
+
+    public interface TestDataInterface {
+        void gettingData(byte[] data);
+
+        void testComplete(ArrayList<TestFactors> results, String msg, ArrayList<IntensityChart> intensityChartsArray);
+        //void getCommandAndResponse(String msg);
+    }
+
     public interface JsonFileInterface {
         void onSuccessForConfigureJson();
 
@@ -1299,8 +1351,7 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
     }
 
     public interface TeststaResultInterface {
-       // void onSuccessForTestComplete(ArrayList<TestFactors> results, String msg, ArrayList<IntensityChart> intensityChartsArray);
-        void onSuccessForTestComplete(ArrayList<TestFactors> results, String msg,ArrayList<IntensityChart> intensityChartsArray);
+        void onSuccessForTestComplete(ArrayList<TestFactors> results, String msg, ArrayList<IntensityChart> intensityChartsArray);
 
         void getRequestAndResponse(String data);
 
@@ -1315,3 +1366,4 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TU
         void ejectStrip(boolean bool);
     }
 }
+
