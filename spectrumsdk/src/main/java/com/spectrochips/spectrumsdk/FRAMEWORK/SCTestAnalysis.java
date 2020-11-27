@@ -1273,12 +1273,7 @@ public class SCTestAnalysis {
         return "";
     }
 
-    /*public void startTestProcess(SyncingInterface syncingInterface1) {
-        this.syncingInterface = syncingInterface1;
-        removereceiver();
-        initializeService();
-        //syncSettingsWithDevice();
-    }*/
+ 
     public void startTestProcess() {
         removereceiver();
         initializeService();
