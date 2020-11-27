@@ -8,7 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.icu.text.DecimalFormat;
+//import android.icu.text.DecimalFormat;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
@@ -247,7 +247,6 @@ public class SCTestAnalysis {
             }
         }, 1000 * 1);*/
     }
-
     private void loadPixelArray() {
         pixelXAxis = new ArrayList<>();
         pixelXAxis.clear();
@@ -255,15 +254,12 @@ public class SCTestAnalysis {
             int roiArray[] = spectroDeviceObject.getImageSensor().getROI();
             int pixelCount = roiArray[1];
             //Log.e("pixelcount", "call" + pixelCount);
-
             for (int i = 1; i <= pixelCount; i++) {
                 pixelXAxis.add(Float.valueOf(i));
             }
             //Log.e("pixelcountarray", "call" + pixelXAxis.toString());
         }
-
     }
-
     private void reprocessWavelength() {
         //reprocess wavelength calculation
         for (int i = 0; i < pixelXAxis.size(); i++) {
@@ -276,9 +272,9 @@ public class SCTestAnalysis {
             DataPoint theData[] = new DataPoint[0];
             PolynomialRegression poly = new PolynomialRegression(theData, spectroDeviceObject.getWavelengthCalibration().getNoOfCoefficients());
             poly.fillMatrix();
-            DecimalFormat df = new DecimalFormat("#.##");
+            //DecimalFormat df = new DecimalFormat("#.##");
             for (int index = 0; index < pixelXAxis.size(); index++) {
-                wavelengthXAxis.add(Float.valueOf(df.format(poly.predictY(resultArray, pixelXAxis.get(index)) * 100 / 100)));
+                wavelengthXAxis.add(Float.valueOf(String.format("%.2f",poly.predictY(resultArray, pixelXAxis.get(index)) * 100 / 100)));
             }
             //Log.e("reprocessWavelength", "call" + wavelengthXAxis.toString());
         }
@@ -1171,7 +1167,7 @@ public class SCTestAnalysis {
     private void testCompleted() {
         clearCache();
         processRCConversion();
-        java.text.DecimalFormat df = new java.text.DecimalFormat("#.##");
+       // java.text.DecimalFormat df = new java.text.DecimalFormat("#.##");
 
         testItems.clear();
         int sno = 0;
