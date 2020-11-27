@@ -2,7 +2,7 @@ package com.spectrochips.spectrumsdk.DeviceConnectionModule;
 
 import android.util.Log;
 
-import java.text.DecimalFormat;
+//import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Random;
@@ -52,7 +52,7 @@ public class PolynomialRegression {
 
             for (int i = 0; i < this.data.length; i++) {
                 DataPoint objDataPoint = this.data[i];
-                Log.e("DataPoint1::",objDataPoint.x + ":" +objDataPoint.y);
+               // Log.e("DataPoint1::",objDataPoint.x + ":" +objDataPoint.y);
             }
         }
 
@@ -88,20 +88,15 @@ public class PolynomialRegression {
                         this.leftMatrix[i][j] = this.data.length;
                     } else {
                         this.leftMatrix[i][j] = this.sumX(this.data, (i + j));
-                        DecimalFormat df = new DecimalFormat("#.##");
-                        Log.e("Left:unMatched",""+df.format(this.leftMatrix[i][j]));
+                       /* DecimalFormat df = new DecimalFormat("#.##");
+                        Log.e("Left:unMatched",""+df.format(this.leftMatrix[i][j]));*/
                     }
                 }
             }
-
-            Log.e("LeftMatrix",""+ Arrays.deepToString(leftMatrix));
-
+         //   Log.e("LeftMatrix",""+ Arrays.deepToString(leftMatrix));
         }
-
         public void generateRightMatrix()  {
-
             this.rightMatrix = new double[this.degree+1];
-
             for (int i = 0; i <= this.degree; i++) {
                 if (i == 0) {
                     this.rightMatrix[i] = this.sumY(this.data, 1);
@@ -110,7 +105,7 @@ public class PolynomialRegression {
                 }
             }
 
-            Log.e("rightMatrix",""+ Arrays.toString(rightMatrix));
+           // Log.e("rightMatrix",""+ Arrays.toString(rightMatrix));
 
         }
 
