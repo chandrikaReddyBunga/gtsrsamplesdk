@@ -1222,7 +1222,7 @@ public class SCTestAnalysis {
     }
 
 
-    private String getNumberFormatStringforTestNameWithValue(String testName, double value) {
+    public String getNumberFormatStringforTestNameWithValue(String testName, double value) {
         //Log.e("formantetestvalue", "" + value);
         String formattedString = String.valueOf(value);
 
