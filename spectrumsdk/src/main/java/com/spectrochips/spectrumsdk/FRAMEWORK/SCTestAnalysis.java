@@ -1222,14 +1222,14 @@ public class SCTestAnalysis {
     }
 
 
-    public String getNumberFormatStringforTestNameWithValue(String testName, double value) {
-        //Log.e("formantetestvalue", "" + value);
+   public String getNumberFormatStringforTestNameWithValue(String testName, double value) {
+        Log.e("formantetestvalue", "" + value);
         String formattedString = String.valueOf(value);
 
         if (spectroDeviceObject.getRCTable() != null) {
             for (RCTableData objRCTable : spectroDeviceObject.getRCTable()) {
                 if (objRCTable.getTestItem().equals(testName)) {
-                    //Log.e("numberformate", "call" + objRCTable.getNumberFormat());
+                    Log.e("numberformate", "call" + objRCTable.getNumberFormat());
                     if (objRCTable.getNumberFormat().equals("X")) {
                         formattedString = String.format("%.0f", value);
                     } else if (objRCTable.getNumberFormat().equals("X.X")) {
@@ -1241,6 +1241,9 @@ public class SCTestAnalysis {
                     } else if (objRCTable.getNumberFormat().equals("X.XXXX")) {
                         formattedString = String.format("%.4f", value);
                     }
+                }
+                if(formattedString.contains(",")){
+                    formattedString.replace(",",".");
                 }
             }
         }
