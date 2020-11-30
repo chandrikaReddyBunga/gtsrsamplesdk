@@ -1193,10 +1193,10 @@ public class SCTestAnalysis {
             flag = getFlagForTestItemWithValue(testName, finalValue);
             resultText = " " + getResultTextForTestItemwithValue(testName, finalValue);
             String testValue = getNumberFormatStringforTestNameWithValue(testName, finalValue);
-
-             if(testValue.contains(",".replace(",","."))){
-                Log.e("zzz","cll"+testValue);
-            }
+            String finalTestValue= testValue.replace(",",".");
+            // if(testValue.contains(",".replace(",","."))){
+             //   Log.e("zzz","cll"+testValue);
+           // }
             //Log.e("testunits", "" + unit + resultText + object.getReferenceRange());
             //Log.e("testresult", "" + resultText);
             //Log.e("testvalue", "" + testValue);
@@ -1209,7 +1209,7 @@ public class SCTestAnalysis {
             objTest.setTestname(testName);
             objTest.setSNo(String.valueOf(sno));
             objTest.setResult(resultText);
-            objTest.setValue(testValue);
+            objTest.setValue(finalTestValue);
             objTest.setrValue(object.getrValue());
             objTest.setcValue(object.getcValue());
             testItems.add(objTest);
