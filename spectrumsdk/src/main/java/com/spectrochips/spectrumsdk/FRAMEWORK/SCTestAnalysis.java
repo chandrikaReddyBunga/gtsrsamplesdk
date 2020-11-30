@@ -272,10 +272,17 @@ public class SCTestAnalysis {
             DataPoint theData[] = new DataPoint[0];
             PolynomialRegression poly = new PolynomialRegression(theData, spectroDeviceObject.getWavelengthCalibration().getNoOfCoefficients());
             poly.fillMatrix();
-            //DecimalFormat df = new DecimalFormat("#.##");
-            for (int index = 0; index < pixelXAxis.size(); index++) {
-                wavelengthXAxis.add(Float.valueOf(String.format("%.2f",poly.predictY(resultArray, pixelXAxis.get(index)) * 100 / 100)));
+            
+             for (int index = 0; index < pixelXAxis.size(); index++) {
+                Double d = poly.predictY(resultArray, pixelXAxis.get(index)) * 100 / 100;
+               // Log.e("zzzzzzzz", "call" + d.floatValue());
+                wavelengthXAxis.add(d.floatValue());
             }
+           
+            //DecimalFormat df = new DecimalFormat("#.##");
+           // for (int index = 0; index < pixelXAxis.size(); index++) {
+            //    wavelengthXAxis.add(Float.valueOf(String.format("%.2f",poly.predictY(resultArray, pixelXAxis.get(index)) * 100 / 100)));
+           // }
             //Log.e("reprocessWavelength", "call" + wavelengthXAxis.toString());
         }
     }
@@ -1012,7 +1019,9 @@ public class SCTestAnalysis {
                 objConcetration.setTestItem(rcTableObject.getTestItem());
                 objConcetration.setReferenceRange(rcTableObject.getReferenceRange());
                 objConcetration.setrValue(String.valueOf(objReflectance.getInterpolationValue()));
-                objConcetration.setcValue(String.valueOf(objReflectance.getCriticalWavelength()));
+                objConcetration.setcValue(String.valueOf(finalC));
+
+               // objConcetration.setcValue(String.valueOf(objReflectance.getCriticalWavelength()));
                 //Log.e("cvaluesarray", "call" + String.valueOf(finalC));
                 concentrationArray.add(objConcetration);
 
@@ -1185,6 +1194,9 @@ public class SCTestAnalysis {
             resultText = " " + getResultTextForTestItemwithValue(testName, finalValue);
             String testValue = getNumberFormatStringforTestNameWithValue(testName, finalValue);
 
+             if(testValue.contains(",".replace(",","."))){
+                Log.e("zzz","cll"+testValue);
+            }
             //Log.e("testunits", "" + unit + resultText + object.getReferenceRange());
             //Log.e("testresult", "" + resultText);
             //Log.e("testvalue", "" + testValue);
