@@ -14,7 +14,15 @@ public class TestFactors {
     String result;
     String rValue;
     String cValue;
+    String criticalWavelength;
 
+    public String getCriticalWavelength() {
+        return criticalWavelength;
+    }
+
+    public void setCriticalWavelength(String criticalWavelength) {
+        this.criticalWavelength = criticalWavelength;
+    }
     public String getrValue() {
         return rValue;
     }
