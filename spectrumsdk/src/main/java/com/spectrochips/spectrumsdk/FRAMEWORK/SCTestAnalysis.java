@@ -1220,13 +1220,7 @@ public class SCTestAnalysis {
                     motorStepsControl(motorSteps.get(stripNumber));
                 }
             }, 1000);
-           /* Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    motorStepsControl(motorSteps.get(stripNumber));
-                }
-            }, 1000 * 1);*/
+          
         } else {
             motorStepsControl(motorSteps.get(stripNumber));
         }
