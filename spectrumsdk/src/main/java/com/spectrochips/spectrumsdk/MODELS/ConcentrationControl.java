@@ -5,7 +5,6 @@ package com.spectrochips.spectrumsdk.MODELS;
  */
 
 public class ConcentrationControl {
-
     String SNo;
     String testItem;
     String concentration;
@@ -13,14 +12,14 @@ public class ConcentrationControl {
     String referenceRange;
     String rValue;
     String cValue;
-   String criticalWavelength;
+    String criticalwavelength;
 
-    public String getCriticalWavelength() {
-        return criticalWavelength;
+    public String getCriticalwavelength() {
+        return criticalwavelength;
     }
 
-    public void setCriticalWavelength(String criticalWavelength) {
-        this.criticalWavelength = criticalWavelength;
+    public void setCriticalwavelength(String criticalwavelength) {
+        this.criticalwavelength = criticalwavelength;
     }
     public String getcValue() {
         return cValue;
@@ -79,4 +78,3 @@ public class ConcentrationControl {
         this.units = units;
     }
 }
-
