@@ -13,7 +13,15 @@ public class ConcentrationControl {
     String referenceRange;
     String rValue;
     String cValue;
+   String criticalWavelength;
 
+    public String getCriticalWavelength() {
+        return criticalWavelength;
+    }
+
+    public void setCriticalWavelength(String criticalWavelength) {
+        this.criticalWavelength = criticalWavelength;
+    }
     public String getcValue() {
         return cValue;
     }
