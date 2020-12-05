@@ -23,6 +23,7 @@ public class TestFactors {
     public void setCriticalWavelength(String criticalWavelength) {
         this.criticalWavelength = criticalWavelength;
     }
+
     public String getrValue() {
         return rValue;
     }
