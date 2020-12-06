@@ -124,7 +124,10 @@ public class SCTestAnalysis {
                 String text = decodeUTF8(txValue);
                 Log.e("ReceivedBytes", "call" + text);
                 if(isTestingCal){
-                    isTestingCal=false;
+                   // isTestingCal=false;
+                    if (testAnalysisListener != null) {
+                        testAnalysisListener.getRequestAndResponse(text);
+                    }
                 }else {
                     socketDidReceiveMessage(text, requestCommand);
                 }
