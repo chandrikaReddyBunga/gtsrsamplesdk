@@ -1327,7 +1327,8 @@ public class SCTestAnalysis {
         return formattedString;
     }
 
-    public boolean getFlagForTestItemWithValue(String testName, double value) {
+   
+ /*   public boolean getFlagForTestItemWithValue(String testName, double value) {
         boolean isOk = false;
         if (spectroDeviceObject.getRCTable() != null) {
             Log.e("getrctable", "calling" + spectroDeviceObject.getRCTable().size());
@@ -1344,7 +1345,33 @@ public class SCTestAnalysis {
             }
         }
         return isOk;
-    }
+    }*/
+ public boolean getFlagForTestItemWithValue(String testName, double value) {
+     boolean isOk = false;
+     String ascrobicTestName = "Ascorbic Acid";
+     if (spectroDeviceObject.getRCTable() != null) {
+         Log.e("getrctable", "calling" + spectroDeviceObject.getRCTable().size());
+         for (RCTableData objRc : spectroDeviceObject.getRCTable()) {
+             if( testName.toLowerCase().equals(ascrobicTestName.toLowerCase()) && objRc.getTestItem().toLowerCase().equals(ascrobicTestName.toLowerCase()) ){
+                 if (value >= 0 && value <= 40) { // for bypass the ascrobic smyle symbol
+                     return true;
+                 }else {
+                     return  false;
+                 }
+             }
+             if (objRc.getTestItem().equals(testName)) {
+                 if (objRc.getLimetLineRanges().get(0) != null) {
+                     LimetLineRanges safeRange = objRc.getLimetLineRanges().get(0);
+                     if (value >= safeRange.getCMinValue() && value <= safeRange.getCMaxValue()) {
+                         isOk = true;
+                         return isOk;
+                     }
+                 }
+             }
+         }
+     }
+     return isOk;
+ }
 
     public String getResultTextForTestItemwithValue(String testName, double value) {
         if (spectroDeviceObject.getRCTable() != null) {
