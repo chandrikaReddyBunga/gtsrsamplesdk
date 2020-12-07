@@ -207,10 +207,11 @@ public class SCTestAnalysis {
     }
 
     public void startTestAnalysis(TeststaResultInterface teststaResultInterface1) {
-        this.testAnalysisListener = teststaResultInterface1;
-        // startTesting();
-       /* stripNumber = 0;
-        SCConnectionHelper.getInstance().prepareCommandForMoveToPosition();*/
+          if (testAnalysisListener != null) {
+            testAnalysisListener = null;
+        }
+        testAnalysisListener = teststaResultInterface1;
+      
     }
 
     public void startTesting() {
