@@ -86,7 +86,7 @@ public class SCTestAnalysis {
     public UartService mService = null;
     private int cal_c = 0;
     private ArrayList<TestFactors> testItems = new ArrayList<>();
-    private TeststaResultInterface testAnalysisListener;
+    public TeststaResultInterface testAnalysisListener;
     private SyncingInterface syncingInterface;
     public JsonFileInterface jsonFileInterface;
     private AbortInterface abortInterface;
