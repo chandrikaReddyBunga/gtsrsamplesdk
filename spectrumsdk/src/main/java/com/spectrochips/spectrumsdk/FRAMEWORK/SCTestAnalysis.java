@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
@@ -51,6 +50,7 @@ import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.MOVE_
 import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TURN_OFF;
 import static com.spectrochips.spectrumsdk.DeviceConnectionModule.Commands.UV_TURN_ON;
 
+
 public class SCTestAnalysis {
     private static SCTestAnalysis ourInstance;
     //public Context context;
@@ -86,17 +86,16 @@ public class SCTestAnalysis {
     public UartService mService = null;
     private int cal_c = 0;
     private ArrayList<TestFactors> testItems = new ArrayList<>();
-    public TeststaResultInterface testAnalysisListener;
+    private TeststaResultInterface testAnalysisListener;
     private SyncingInterface syncingInterface;
     public JsonFileInterface jsonFileInterface;
     private AbortInterface abortInterface;
     private EjectInterface ejectInterface;
+    public TestToastInterface testToastInterface;
 
     private boolean isEjectType = false;
     private boolean isInterrupted = false;
     public ArrayList<TestFactors> testResults = new ArrayList<>();
-
-    // public String  receivedDataStringString = "";
 
     public static SCTestAnalysis getInstance() {
         if (ourInstance == null) {
@@ -119,12 +118,9 @@ public class SCTestAnalysis {
         syncDeviceData(new TestDataInterface() {
             @Override
             public void gettingData(byte[] data) {
-                Log.e("xxxxxxxxxxxx", "call" + data.length);
                 final byte[] txValue = data;
                 String text = decodeUTF8(txValue);
-                Log.e("ReceivedBytes", "call" + text);
                 if(isTestingCal){
-                   // isTestingCal=false;
                     if (testAnalysisListener != null) {
                         testAnalysisListener.getRequestAndResponse(text);
                     }
@@ -132,8 +128,14 @@ public class SCTestAnalysis {
                     socketDidReceiveMessage(text, requestCommand);
                 }
             }
-
-   
+            /*@Override
+            public void testComplete(ArrayList<TestFactors> results, String msg, ArrayList<IntensityChart> intensityChartsArray) {
+                testResults = results;
+                Log.e("testCompleteReceived", "call" + testResults.size());
+                if (testAnalysisListener != null) {
+                    testAnalysisListener.onSuccessForTestComplete(testResults, "Test Complete", intensityChartsArray);
+                }
+            }*/
         });
     }
 
@@ -161,12 +163,12 @@ public class SCTestAnalysis {
     }
 
     public void activatenotifications(JsonFileInterface jsonFileInterface1) {
-        this.jsonFileInterface = jsonFileInterface1;
         if (jsonFileInterface != null) {
             jsonFileInterface = null;
         }
         jsonFileInterface = jsonFileInterface1;
     }
+
     /*public void getDeviceSettings(String testName, String category, String date, JsonFileInterface jsonFileInterface1) {
         this.jsonFileInterface = jsonFileInterface1;
         SpectroDeviceDataController.getInstance().loadJsonFromUrl(testName);
@@ -200,11 +202,13 @@ public class SCTestAnalysis {
     }
 
     public void startTestAnalysis(TeststaResultInterface teststaResultInterface1) {
-          if (testAnalysisListener != null) {
-            testAnalysisListener = null;
+        if(testAnalysisListener!=null){
+            testAnalysisListener=null;
         }
-        testAnalysisListener = teststaResultInterface1;
-      
+        this.testAnalysisListener = teststaResultInterface1;
+        // startTesting();
+       /* stripNumber = 0;
+        SCConnectionHelper.getInstance().prepareCommandForMoveToPosition();*/
     }
 
     public void startTesting() {
@@ -213,6 +217,7 @@ public class SCTestAnalysis {
         isForDarkSpectrum = false;
         // isCalibration = false;
         stripNumber = 0;
+
         SCConnectionHelper.getInstance().prepareCommandForMoveToPosition();
     }
 
@@ -267,6 +272,7 @@ public class SCTestAnalysis {
         objDarkIntensity.setWavelengthArray(wavelengthXAxis);
         objDarkIntensity.setCriticalWavelength(0.0);
         intensityChartsArray.add(objDarkIntensity);
+
     }
 
     private void getDarkSpectrum() {
@@ -476,6 +482,9 @@ public class SCTestAnalysis {
         receivedDataString = receivedDataString + response;
 
         if (receivedDataString.toUpperCase().startsWith("^ERR#") || receivedDataString.toUpperCase().startsWith("$ERR#")) {
+            /*HashMap<String, String> dictionary = new HashMap<String, String>();
+            dictionary.put("request", request);
+            dictionary.put("response", receivedDataString);*/
             // NotificationCenter.default.post(name: NOTIFICATION_DATA_AVAILABLE.name, object: self, userInfo:dictionary)
             Log.e("^ERR#DataRecieved", "call");
             dataRecieved(receivedDataString, request);
@@ -485,6 +494,9 @@ public class SCTestAnalysis {
         if (receivedDataString.toUpperCase().startsWith("$OK#") || receivedDataString.toUpperCase().startsWith("$OK!") || receivedDataString.toUpperCase().startsWith("^OK#")) {
             //   if (request.equals("$POR#")) {
             // receivedDataString = "$POS#";
+                /*HashMap<String, String> dictionary = new HashMap<String, String>();
+                dictionary.put("request", request);
+                dictionary.put("response", receivedDataString);*/
             Log.e("$OK# Data Recieved", "call");
             dataRecieved(receivedDataString, request);
             receivedDataString = "";
@@ -498,18 +510,27 @@ public class SCTestAnalysis {
 
         // Position Sensor success response  ^POS# or $POS#
         if (receivedDataString.toUpperCase().startsWith("^POS#") || receivedDataString.toUpperCase().startsWith("$POS#")) {
+           /* HashMap<String, String> dictionary = new HashMap<String, String>();
+            dictionary.put("request", request);
+            dictionary.put("response", receivedDataString);*/
             dataRecieved(receivedDataString, request);
             receivedDataString = "";
         }
 
         // Motor move stop Sensor. ^STP#
         if (receivedDataString.toUpperCase().startsWith("^STP#") || receivedDataString.toUpperCase().startsWith("$STP#")) {
+           /* HashMap<String, String> dictionary = new HashMap<String, String>();
+            dictionary.put("request", request);
+            dictionary.put("response", receivedDataString);*/
             dataRecieved(receivedDataString, request);
             receivedDataString = "";
         }
 
         //notify graph processing only when we got complete data 5e3235363023
         if (receivedDataString.toUpperCase().startsWith("^288$") && receivedDataString.toUpperCase().endsWith("^EOF#")) {
+           /* HashMap<String, String> dictionary = new HashMap<String, String>();
+            dictionary.put("request", request);
+            dictionary.put("response", receivedDataString);*/
             Log.e("receivedDataStringcall", "call" + receivedDataString);
             intensityDataRecieved(receivedDataString, request);
             receivedDataString = "";
@@ -654,6 +675,9 @@ public class SCTestAnalysis {
                         @Override
                         public void run() {
                             requestCommand = "";
+                            if(testToastInterface!=null){
+                                testToastInterface.getResponse("StripNumber"+stripNumber);
+                            }
                             stripNumber += 1;
                             getIntensity();
                         }
@@ -865,9 +889,11 @@ public class SCTestAnalysis {
                 }
             }
         } */else {
-            Log.e("otherThandarkArray", "call" + intensityArray.toString());
             setIntensityArrayForTestItem();
             if (stripNumber == motorSteps.size() - 1) {  // Before Eject command , Process the Testing completed command.
+                if(testToastInterface!=null){
+                    testToastInterface.getResponse("calling testCompleted methods");
+                }
                 testCompleted();
             }
         }
@@ -897,13 +923,8 @@ public class SCTestAnalysis {
             object.setSubstratedArray(getSubstratedArray(standardWhiteIntensityArray, darkSpectrumIntensityArray));
             intensityChartsArray.set(position, object);
         }
-
-        /*if(testAnalysisListener !=null){
-            testAnalysisListener.getRequestAndResponse(intensityArray.toString());
-        }*/
         if (stripNumber == motorSteps.size() - 1) {
             Log.e("testingended", "call");
-            // Testing ended.
         }
 
     }
@@ -977,6 +998,9 @@ public class SCTestAnalysis {
                     reflectenceChartsArray.add(objReflectanceChart);
                 }
             }
+            if(testToastInterface!=null){
+                testToastInterface.getResponse("filling reflectenceChartsArray completed");
+            }
         } else {
             Log.e("No SW available", "call");
         }
@@ -1031,7 +1055,7 @@ public class SCTestAnalysis {
             } else {
                 divisionArray.add(originalArray.get(i) / referenceArray.get(i));
                 /* double value = originalArray.get(i) / referenceArray.get(i);
-               if (value >= 0){
+                 if (value >= 0){
                     divisionArray.add(originalArray.get(i) / referenceArray.get(i));
                 }else{
                     divisionArray.add(0.0f);
@@ -1043,7 +1067,6 @@ public class SCTestAnalysis {
     }
 
     private ArrayList<Float> getStandardwhiteSubstrateArray() {
-
         for (IntensityChart objIntensitychartObject : intensityChartsArray) {
             if (objIntensitychartObject.getTestName().equals(standardWhiteTitle)) {
                 return objIntensitychartObject.getSubstratedArray();
@@ -1087,7 +1110,9 @@ public class SCTestAnalysis {
                 index += 1;
             }
         }
-        Log.e("concentrationArray", "call" + concentrationArray.size());
+        if(testToastInterface!=null){
+            testToastInterface.getResponse("filling concentrationArray completed");
+        }
     }
     private ArrayList<Float> sortXValuesArray(ArrayList<Float> xValues, final double criticalWavelength) {
         Log.e("beforesort", "call" + xValues.toString());
@@ -1209,6 +1234,7 @@ public class SCTestAnalysis {
 
     private void performMotorStepsFunction() {
         Log.e("stripnumberandsize", "call" + stripNumber + "cal" + (intensityChartsArray.size()));
+
         if (stripNumber == intensityChartsArray.size() - 1) {  // Last Step is Eject . if match then turn of LED and execute last step with 1 sec delay.
             ledControl(false);
             new Timer().schedule(new TimerTask() {
@@ -1217,7 +1243,6 @@ public class SCTestAnalysis {
                     motorStepsControl(motorSteps.get(stripNumber));
                 }
             }, 1000);
-          
         } else {
             motorStepsControl(motorSteps.get(stripNumber));
         }
@@ -1250,7 +1275,6 @@ public class SCTestAnalysis {
     private void testCompleted() {
         clearCache();
         processRCConversion();
-      //  java.text.DecimalFormat df = new java.text.DecimalFormat("#.##");
 
         testItems.clear();
         int sno = 0;
@@ -1291,14 +1315,20 @@ public class SCTestAnalysis {
             objTest.setCriticalWavelength(object.getCriticalwavelength());
             testItems.add(objTest);
         }
-       // if (testDataInterface != null) {
-         //   testDataInterface.testComplete(testItems, "test", intensityChartsArray);
-       // }
-         if (testAnalysisListener != null) {
+        if(testToastInterface!=null){
+            testToastInterface.getResponse("testing Completed");
+        }
+        if (testAnalysisListener != null) {
             testAnalysisListener.onSuccessForTestComplete(testItems, "test", intensityChartsArray);
         }
 
+       /* if (testDataInterface != null) {
+            testDataInterface.testComplete(testItems, "test", intensityChartsArray);
+        }*/
+
     }
+
+
     public String getNumberFormatStringforTestNameWithValue(String testName, double value) {
         Log.e("formantetestvalue", "" + value);
         String formattedString = String.valueOf(value);
@@ -1327,12 +1357,37 @@ public class SCTestAnalysis {
         return formattedString;
     }
 
-   
- /*   public boolean getFlagForTestItemWithValue(String testName, double value) {
+    /*   public boolean getFlagForTestItemWithValue(String testName, double value) {
+           boolean isOk = false;
+           if (spectroDeviceObject.getRCTable() != null) {
+               Log.e("getrctable", "calling" + spectroDeviceObject.getRCTable().size());
+               for (RCTableData objRc : spectroDeviceObject.getRCTable()) {
+                   if (objRc.getTestItem().equals(testName)) {
+                       if (objRc.getLimetLineRanges().get(0) != null) {
+                           LimetLineRanges safeRange = objRc.getLimetLineRanges().get(0);
+                           if (value >= safeRange.getCMinValue() && value <= safeRange.getCMaxValue()) {
+                               isOk = true;
+                               return isOk;
+                           }
+                       }
+                   }
+               }
+           }
+           return isOk;
+       }*/
+    public boolean getFlagForTestItemWithValue(String testName, double value) {
         boolean isOk = false;
+        String ascrobicTestName = "Ascorbic Acid";
         if (spectroDeviceObject.getRCTable() != null) {
             Log.e("getrctable", "calling" + spectroDeviceObject.getRCTable().size());
             for (RCTableData objRc : spectroDeviceObject.getRCTable()) {
+                if( testName.toLowerCase().equals(ascrobicTestName.toLowerCase()) && objRc.getTestItem().toLowerCase().equals(ascrobicTestName.toLowerCase()) ){
+                    if (value >= 0 && value <= 40) { // for bypass the ascrobic smyle symbol
+                        return true;
+                    }else {
+                        return  false;
+                    }
+                }
                 if (objRc.getTestItem().equals(testName)) {
                     if (objRc.getLimetLineRanges().get(0) != null) {
                         LimetLineRanges safeRange = objRc.getLimetLineRanges().get(0);
@@ -1345,39 +1400,11 @@ public class SCTestAnalysis {
             }
         }
         return isOk;
-    }*/
- public boolean getFlagForTestItemWithValue(String testName, double value) {
-     boolean isOk = false;
-     String ascrobicTestName = "Ascorbic Acid";
-     if (spectroDeviceObject.getRCTable() != null) {
-         Log.e("getrctable", "calling" + spectroDeviceObject.getRCTable().size());
-         for (RCTableData objRc : spectroDeviceObject.getRCTable()) {
-             if( testName.toLowerCase().equals(ascrobicTestName.toLowerCase()) && objRc.getTestItem().toLowerCase().equals(ascrobicTestName.toLowerCase()) ){
-                 if (value >= 0 && value <= 40) { // for bypass the ascrobic smyle symbol
-                     return true;
-                 }else {
-                     return  false;
-                 }
-             }
-             if (objRc.getTestItem().equals(testName)) {
-                 if (objRc.getLimetLineRanges().get(0) != null) {
-                     LimetLineRanges safeRange = objRc.getLimetLineRanges().get(0);
-                     if (value >= safeRange.getCMinValue() && value <= safeRange.getCMaxValue()) {
-                         isOk = true;
-                         return isOk;
-                     }
-                 }
-             }
-         }
-     }
-     return isOk;
- }
-
+    }
     public String getResultTextForTestItemwithValue(String testName, double value) {
         if (spectroDeviceObject.getRCTable() != null) {
             for (RCTableData objRc : spectroDeviceObject.getRCTable()) {
                 if (objRc.getTestItem().equals(testName)) {
-
                     for (LimetLineRanges objLimitRange : objRc.getLimetLineRanges()) {
                         if (value >= objLimitRange.getCMinValue() && value <= objLimitRange.getCMaxValue()) {
                             if (objLimitRange.getLineSymbol().trim().equals("-")) {
@@ -1392,9 +1419,17 @@ public class SCTestAnalysis {
         }
         return "";
     }
+
+    /*public void startTestProcess(SyncingInterface syncingInterface1) {
+        this.syncingInterface = syncingInterface1;
+        removereceiver();
+        initializeService();
+        //syncSettingsWithDevice();
+    }*/
     public void startTestProcess() {
         removereceiver();
         initializeService();
+        //syncSettingsWithDevice();
     }
 
     public void ejectTesting(EjectInterface abortInterface1) {
@@ -1403,8 +1438,11 @@ public class SCTestAnalysis {
     }
 
     public void abortTesting(AbortInterface abortInterface1) {
-        this.abortInterface = abortInterface1;
-        testAnalysisListener = null;
+        if (abortInterface != null) {
+            abortInterface=null;
+        }
+        abortInterface=abortInterface1;
+
         if (SCConnectionHelper.getInstance().isConnected) {
             isInterrupted = true;
             if (!isForSync) {
@@ -1429,16 +1467,20 @@ public class SCTestAnalysis {
         SCConnectionHelper.getInstance().disconnect();// it will goes to SpectroDeviceScanViewController
         unRegisterReceiver();
     }
+    
     public TestDataInterface testDataInterface;
 
     public void syncDeviceData(TestDataInterface testDataInterface1) {
-        this.testDataInterface = testDataInterface1;
+        if (testDataInterface != null) {
+            testDataInterface = null;
+        }
+        testDataInterface = testDataInterface1;
     }
 
     public interface TestDataInterface {
         void gettingData(byte[] data);
 
-      //  void testComplete(ArrayList<TestFactors> results, String msg, ArrayList<IntensityChart> intensityChartsArray);
+        // void testComplete(ArrayList<TestFactors> results, String msg, ArrayList<IntensityChart> intensityChartsArray);
         //void getCommandAndResponse(String msg);
     }
 
@@ -1461,6 +1503,16 @@ public class SCTestAnalysis {
         void getRequestAndResponse(String data);
 
         void onFailureForTesting(String error);
+    }
+
+    public void toastIntterfaceMethod(TestToastInterface testToastInterface1) {
+        if (testToastInterface != null) {
+            testToastInterface = null;
+        }
+        testToastInterface = testToastInterface1;
+    }
+    public interface TestToastInterface {
+        void getResponse(String data);
     }
 
     public interface AbortInterface {
