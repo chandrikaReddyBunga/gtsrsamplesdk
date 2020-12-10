@@ -133,14 +133,7 @@ public class SCTestAnalysis {
                 }
             }
 
-            @Override
-            public void testComplete(ArrayList<TestFactors> results, String msg, ArrayList<IntensityChart> intensityChartsArray) {
-                testResults = results;
-                Log.e("testCompleteReceived", "call" + testResults.size());
-                if (testAnalysisListener != null) {
-                    testAnalysisListener.onSuccessForTestComplete(testResults, "Test Complete", intensityChartsArray);
-                }
-            }
+   
         });
     }
 
@@ -1257,7 +1250,7 @@ public class SCTestAnalysis {
     private void testCompleted() {
         clearCache();
         processRCConversion();
-        java.text.DecimalFormat df = new java.text.DecimalFormat("#.##");
+      //  java.text.DecimalFormat df = new java.text.DecimalFormat("#.##");
 
         testItems.clear();
         int sno = 0;
@@ -1298,8 +1291,11 @@ public class SCTestAnalysis {
             objTest.setCriticalWavelength(object.getCriticalwavelength());
             testItems.add(objTest);
         }
-        if (testDataInterface != null) {
-            testDataInterface.testComplete(testItems, "test", intensityChartsArray);
+       // if (testDataInterface != null) {
+         //   testDataInterface.testComplete(testItems, "test", intensityChartsArray);
+       // }
+         if (testAnalysisListener != null) {
+            testAnalysisListener.onSuccessForTestComplete(testItems, "test", intensityChartsArray);
         }
 
     }
@@ -1442,7 +1438,7 @@ public class SCTestAnalysis {
     public interface TestDataInterface {
         void gettingData(byte[] data);
 
-        void testComplete(ArrayList<TestFactors> results, String msg, ArrayList<IntensityChart> intensityChartsArray);
+      //  void testComplete(ArrayList<TestFactors> results, String msg, ArrayList<IntensityChart> intensityChartsArray);
         //void getCommandAndResponse(String msg);
     }
 
