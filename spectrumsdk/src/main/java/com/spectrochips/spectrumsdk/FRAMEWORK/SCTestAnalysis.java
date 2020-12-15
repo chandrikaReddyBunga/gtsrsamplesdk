@@ -95,6 +95,8 @@ public class SCTestAnalysis {
 
     private boolean isEjectType = false;
     private boolean isInterrupted = false;
+    private boolean isInsertStrip = false;
+
     public ArrayList<TestFactors> testResults = new ArrayList<>();
 
     public static SCTestAnalysis getInstance() {
@@ -665,7 +667,14 @@ public class SCTestAnalysis {
                         ejectInterface.ejectStrip(true);
                     }
                 }
-            } else {
+            }else if (isInsertStrip) {
+                Log.e("insertstrip", "call");
+                isInsertStrip=false;//called when isert strip
+                if (ejectInterface != null) {
+                    ejectInterface.insertStrip(true);
+                }
+            }
+            else {
                 Log.e("abort7", "call");
                 if (stripNumber != motorSteps.size() - 1) {
                     int dwellTime = motorSteps.get(stripNumber).getDwellTimeInSec();
@@ -754,6 +763,20 @@ public class SCTestAnalysis {
                 @Override
                 public void run() {
                     sendString(ejectCommand);
+                }
+            }, 1000);
+        }
+    }
+ public void insertStripCommand() {
+        final String insertCommand = "$MLS900#";
+        Log.e("insertStripCommand", "call" + insertCommand);
+        if (SCConnectionHelper.getInstance().isConnected) {
+            isInsertStrip=true;
+            ledControl(false);
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    sendString(insertCommand);
                 }
             }, 1000);
         }
@@ -1521,5 +1544,6 @@ public class SCTestAnalysis {
 
     public interface EjectInterface {
         void ejectStrip(boolean bool);
+        void insertStrip(boolean bool);
     }
 }
