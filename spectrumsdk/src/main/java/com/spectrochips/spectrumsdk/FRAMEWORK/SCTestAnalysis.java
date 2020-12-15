@@ -95,7 +95,7 @@ public class SCTestAnalysis {
 
     private boolean isEjectType = false;
     private boolean isInterrupted = false;
-    private boolean isInsertStrip = false;
+    public boolean isInsertStrip = false;
 
     public ArrayList<TestFactors> testResults = new ArrayList<>();
 
@@ -1455,11 +1455,13 @@ public class SCTestAnalysis {
         //syncSettingsWithDevice();
     }
 
-    public void ejectTesting(EjectInterface abortInterface1) {
-        this.ejectInterface = abortInterface1;
-        // testAnalysisListener = null;
+   public void ejectTesting(EjectInterface ejectInterface1) {
+        if(ejectInterface!=null){
+            ejectInterface=null;
+        }
+        ejectInterface = ejectInterface1;
     }
-
+    
     public void abortTesting(AbortInterface abortInterface1) {
         if (abortInterface != null) {
             abortInterface=null;
