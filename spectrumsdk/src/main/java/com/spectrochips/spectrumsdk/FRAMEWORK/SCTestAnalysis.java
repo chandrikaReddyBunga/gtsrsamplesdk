@@ -772,7 +772,7 @@ public class SCTestAnalysis {
         Log.e("insertStripCommand", "call" + insertCommand);
         if (SCConnectionHelper.getInstance().isConnected) {
             isInsertStrip=true;
-            ledControl(false);
+         // ledControl(false);
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
