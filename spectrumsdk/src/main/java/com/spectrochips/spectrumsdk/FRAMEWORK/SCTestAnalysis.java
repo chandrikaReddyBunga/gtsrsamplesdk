@@ -621,7 +621,7 @@ public class SCTestAnalysis {
                 commandNumber = commandNumber + 1;
             } else {
                 Log.e("abort5", "call");
-              /*  if (isInterrupted) { //for test abort from my side
+                if (isInterrupted) { //for test abort from my side
                     if (abortInterface != null) {
                         abortInterface.onAbortForTesting(true);
                         abortInterface = null;
@@ -629,7 +629,7 @@ public class SCTestAnalysis {
                         ejectStripCommand();
                         clearPreviousTestResulsArray();
                     }
-                }*/
+                }
                 if (command.equals(UV_TURN_ON)) {
                     new Timer().schedule(new TimerTask() {
                         @Override
@@ -659,7 +659,17 @@ public class SCTestAnalysis {
                         abortInterface.onAbortForTesting(true);
                     }
                 }
-            }else if (isInsertStrip) {
+            }else if (isInterrupted) { //for test abort from my side
+                    if (abortInterface != null) {
+                        abortInterface.onAbortForTesting(true);
+                        abortInterface = null;
+                        clearCache();
+                        ejectStripCommand();
+                        clearPreviousTestResulsArray();
+                    }
+                }
+            
+            else if (isInsertStrip) {
                 Log.e("insertstrip", "call");
                 isInsertStrip=false;//called when isert strip
                 if (ejectInterface != null) {
