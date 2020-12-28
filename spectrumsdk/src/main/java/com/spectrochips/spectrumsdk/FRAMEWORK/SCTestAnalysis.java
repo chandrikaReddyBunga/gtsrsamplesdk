@@ -756,6 +756,7 @@ public class SCTestAnalysis {
         final String ejectCommand = "$MRS900#";
         Log.e("ejectStripCommand", "call" + ejectCommand);
         if (SCConnectionHelper.getInstance().isConnected) {
+             isForSync = false;
             isEjectType = true;
             isInterrupted = true;
             ledControl(false);
@@ -771,7 +772,9 @@ public class SCTestAnalysis {
         final String insertCommand = "$MLS900#";
         Log.e("insertStripCommand", "call" + insertCommand);
         if (SCConnectionHelper.getInstance().isConnected) {
+             isForSync = false;
             isInsertStrip=true;
+          
          // ledControl(false);
             new Timer().schedule(new TimerTask() {
                 @Override
