@@ -655,8 +655,8 @@ public class SCTestAnalysis {
                     Log.e("ejecttype", "call");
                     isEjectType = false;
                     isInterrupted = false;
-                    if (abortInterface != null) {
-                        abortInterface.onAbortForTesting(true);
+                    if (ejectInterface != null) {
+                        ejectInterface.ejectStrip(true);
                     }
                 }
             }else if (isInterrupted) { //for test abort from my side
