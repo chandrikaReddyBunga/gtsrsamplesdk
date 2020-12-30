@@ -922,6 +922,14 @@ public class SCTestAnalysis {
             }
         } */ else {
             setIntensityArrayForTestItem();
+            Log.e("lastpostion", "call" + motorSteps.get(stripNumber).getTestName());
+            if (motorSteps.get(stripNumber).getTestName().contains("Eject")) {
+                Log.e("mrs850", "call" );
+                        isTestDone = true;
+                if (ejectInterface != null) {
+                    ejectInterface.startTestForEjectTest(true);
+                }
+            }
             if (stripNumber == motorSteps.size() - 1) {  // Before Eject command , Process the Testing completed command.
                 if (testToastInterface != null) {
                     testToastInterface.getResponse("calling testCompleted methods");
